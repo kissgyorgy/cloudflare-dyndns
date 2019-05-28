@@ -18,6 +18,10 @@ GET_IP_SERVICES = [
 ]
 
 
+class IPServiceError(Exception):
+    """Couldn't determine current IP address."""
+
+
 def get_ip(service_urls):
     print("Checking current IP address...")
     for ip_service in service_urls:
@@ -32,7 +36,7 @@ def get_ip(service_urls):
             print(f"Current IP address from {ip_service}: {ip}")
             return ip
     else:
-        sys.exit("Couldn't determine current IP address.")
+        raise IPServiceError
 
 
 class Cache:
@@ -74,48 +78,41 @@ class Cache:
         }
 
 
+class CloudFlareError(Exception):
+    """We can't communicate with CloudFlare API as expected."""
+
+
 class CloudFlareClient:
     def __init__(self, email, apikey):
         self._cf = CloudFlare.CloudFlare(email=email, token=apikey)
 
     def get_records(self, domain):
         filter_by_name = {"name": domain}
-        try:
-            zone_list = self._cf.zones.get(params=filter_by_name)
-        except CloudFlare.exceptions.CloudFlareAPIError as e:
-            sys.exit(str(e))
+        zone_list = self._cf.zones.get(params=filter_by_name)
 
         # not sure if multiple zones can exist for the same domain
         try:
             zone = zone_list[0]
-        except KeyError:
-            sys.exit(f'Cannot find domain "{domain}" at CloudFlare')
+        except IndexError:
+            raise CloudFlareError(f'Cannot find domain "{domain}" at CloudFlare')
 
-        try:
-            dns_records = self._cf.zones.dns_records.get(
-                zone["id"], params=filter_by_name
-            )
-        except CloudFlare.exceptions.CloudFlareAPIError as e:
-            sys.exit(str(e))
+        dns_records = self._cf.zones.dns_records.get(zone["id"], params=filter_by_name)
 
         for record in dns_records:
             if record["type"] == "A" and record["name"] == domain:
                 break
         else:
-            sys.exit(f"Cannot find A record for {domain}")
+            raise CloudFlareError(f"Cannot find A record for {domain}")
 
         return zone["id"], record["id"]
 
     def update_A_record(self, ip, domain, zone_id, record_id):
         print(f'Updating "{domain}" A record.')
         payload = {"name": "@", "type": "A", "content": str(ip)}
-        try:
-            self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
-        except CloudFlare.exceptions.CloudFlareAPIError as e:
-            sys.exit(str(e))
+        self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
 
-def main():
+def start_update():
     cache = Cache(CACHE_PATH)
     cache.load()
     cf = CloudFlareClient(CLOUDFLARE_EMAIL, CLOUDFLARE_API_KEY)
@@ -141,5 +138,20 @@ def main():
     print("Done.")
 
 
+def main():
+    try:
+        start_update()
+    except IPServiceError:
+        print(IPServiceError.__doc__)
+        return 1
+    except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
+        print(e)
+        return 2
+    except Exception:
+        return 3
+    else:
+        return 0
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
