@@ -37,7 +37,8 @@ def get_ip(service_urls):
 
 class Cache:
     def __init__(self, cache_path: str, debug=False):
-        self._path = Path(cache_path)
+        self._path = Path(cache_path).expanduser()
+        self._path.parent.mkdir(exist_ok=True, parents=True)
         self._cache = self._make_default()
         self._debug = debug
 
@@ -205,7 +206,7 @@ def start_update(domains, email, api_key, cache_file, force=False, debug=False):
     "--cache-file",
     help="Cache file",
     type=click.Path(dir_okay=False, writable=True, readable=True),
-    default="cfdns.cache",
+    default="~/.cache/cfdns/cfdns.cache",
     show_default=True,
 )
 @click.option("--force", is_flag=True, help="Delete cache and update every domain")
