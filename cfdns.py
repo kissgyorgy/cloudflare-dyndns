@@ -67,7 +67,7 @@ class Cache:
         records = self._cache["zone_records"][domain]
         return records["zone_id"], records["record_id"]
 
-    def update_ids(self, domain, zone_id, record_id):
+    def update_domain(self, domain, zone_id, record_id):
         self._cache["zone_records"][domain] = {
             "zone_id": zone_id,
             "record_id": record_id,
@@ -109,6 +109,7 @@ class CloudFlareClient:
 
 
 def start_update(domains, email, api_key, cache_file):
+    success = True
     cache = Cache(cache_file)
     cache.load()
     cf = CloudFlareClient(email, api_key)
@@ -117,7 +118,7 @@ def start_update(domains, email, api_key, cache_file):
 
     if current_ip == cache.get_ip():
         click.echo("IP address is unchanged, quitting.")
-        return
+        return success
     else:
         cache.set_ip(current_ip)
 
@@ -126,13 +127,24 @@ def start_update(domains, email, api_key, cache_file):
         try:
             zone_id, record_id = cache.get_ids(domain)
         except KeyError:
-            zone_id, record_id = cf.get_records(domain)
-            cache.update_ids(domain, zone_id, record_id)
+            try:
+                zone_id, record_id = cf.get_records(domain)
+            except Exception:
+                click.secho(f'Failed to get domain records for "{domain}"', fg="red")
+                success = False
+                continue
+            cache.update_domain(domain, zone_id, record_id)
 
-        cf.update_A_record(current_ip, domain, zone_id, record_id)
+        try:
+            cf.update_A_record(current_ip, domain, zone_id, record_id)
+        except Exception:
+            click.secho(f'Failed to update domain "{domain}"', fg="red")
+            success = False
+            continue
 
     cache.save()
     click.echo("Done.")
+    return success
 
 
 @click.command()
@@ -168,7 +180,7 @@ def main(ctx, domains, email, api_key, cache_file):
     with the current IP address of the machine running the script.
     """
     try:
-        start_update(domains, email, api_key, cache_file)
+        success = start_update(domains, email, api_key, cache_file)
     except IPServiceError:
         click.secho(IPServiceError.__doc__, fg="red")
         ctx.exit(1)
@@ -178,6 +190,10 @@ def main(ctx, domains, email, api_key, cache_file):
     except Exception as e:
         click.secho(f"Unknown error: {e}", fg="red")
         ctx.exit(3)
+
+    if not success:
+        click.secho("There were some errors during update.", fg="yellow")
+        ctx.exit(2)
 
 
 if __name__ == "__main__":
