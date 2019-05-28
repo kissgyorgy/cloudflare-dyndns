@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json
+import pickle
 import ipaddress
 from pathlib import Path
 import click
@@ -38,30 +38,30 @@ def get_ip(service_urls):
 class Cache:
     def __init__(self, cache_path: str):
         self._path = Path(cache_path)
-        self._cache = {"ip": None, "zone_records": {}}
+        self._cache = {"ip": None, "zone_records": {}, "updated_domains": set()}
 
     def load(self):
         click.echo(f"Loading cache from {self._path}")
         try:
-            with self._path.open() as fp:
-                self._cache = json.load(fp)
+            with self._path.open("rb") as fp:
+                self._cache = pickle.load(fp)
         except FileNotFoundError:
             pass
-        except json.JSONDecodeError:
-            click.echo("Invalid cache file, deleting")
+        except pickle.PickleError:
+            click.secho("Invalid cache file, deleting", fg="yellow")
             self._path.unlink()
 
     def save(self):
         click.echo("Saving cache")
-        with self._path.open("w") as fp:
-            json.dump(self._cache, fp)
+        with self._path.open("wb") as fp:
+            pickle.dump(self._cache, fp)
 
     def get_ip(self):
-        ip = self._cache.get("ip", None)
-        return ipaddress.IPv4Address(ip) if ip else None
+        return self._cache["ip"]
 
     def set_ip(self, ip: ipaddress.IPv4Address):
-        self._cache["ip"] = str(ip)
+        self._cache["ip"] = ip
+        self._cache["updated_domains"] = set()
 
     def get_ids(self, domain):
         records = self._cache["zone_records"][domain]
@@ -72,6 +72,10 @@ class Cache:
             "zone_id": zone_id,
             "record_id": record_id,
         }
+        self._cache["updated_domains"].add(domain)
+
+    def get_updated(self):
+        return self._cache["updated_domains"]
 
 
 class CloudFlareError(Exception):
@@ -115,15 +119,19 @@ def start_update(domains, email, api_key, cache_file):
     cf = CloudFlareClient(email, api_key)
 
     current_ip = get_ip(GET_IP_SERVICES)
+    click.secho(
+        f"Domains with this IP address: {', '.join(cache.get_updated())}", fg="green"
+    )
+    missing_domains = set(domains) - cache.get_updated()
 
-    if current_ip == cache.get_ip():
-        click.echo("IP address is unchanged, quitting.")
+    if current_ip == cache.get_ip() and not missing_domains:
+        click.secho("Every domain is up-to-date, quitting.", fg="green")
         return success
     else:
         cache.set_ip(current_ip)
 
-    click.echo(f"Updating A records for domains: {', '.join(domains)}...")
-    for domain in domains:
+    click.echo(f"Updating A records for domains: {', '.join(missing_domains)}...")
+    for domain in missing_domains:
         try:
             zone_id, record_id = cache.get_ids(domain)
         except KeyError:
@@ -143,7 +151,7 @@ def start_update(domains, email, api_key, cache_file):
             continue
 
     cache.save()
-    click.echo("Done.")
+    click.secho("Done.", fg="green")
     return success
 
 
