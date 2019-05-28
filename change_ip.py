@@ -46,7 +46,7 @@ class Cache:
             with self._path.open() as fp:
                 self._cache = json.load(fp)
         except FileNotFoundError:
-            return self._cache
+            pass
         except json.JSONDecodeError:
             print("Invalid cache file, deleting")
             self._path.unlink()
