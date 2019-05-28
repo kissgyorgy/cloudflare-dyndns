@@ -101,8 +101,8 @@ class CloudFlareClient:
         self._cf = CloudFlare.CloudFlare(email=email, token=apikey)
 
     def get_records(self, domain):
-        filter_by_name = {"name": domain}
-        zone_list = self._cf.zones.get(params=filter_by_name)
+        without_subdomains = ".".join(domain.rsplit(".")[-2:])
+        zone_list = self._cf.zones.get(params={"name": without_subdomains})
 
         # not sure if multiple zones can exist for the same domain
         try:
@@ -110,7 +110,9 @@ class CloudFlareClient:
         except IndexError:
             raise CloudFlareError(f'Cannot find domain "{domain}" at CloudFlare')
 
-        dns_records = self._cf.zones.dns_records.get(zone["id"], params=filter_by_name)
+        dns_records = self._cf.zones.dns_records.get(
+            zone["id"], params={"name": domain}
+        )
 
         for record in dns_records:
             if record["type"] == "A" and record["name"] == domain:
@@ -122,7 +124,7 @@ class CloudFlareClient:
 
     def update_A_record(self, ip, domain, zone_id, record_id):
         click.echo(f'Updating "{domain}" A record.')
-        payload = {"name": "@", "type": "A", "content": str(ip)}
+        payload = {"name": domain, "type": "A", "content": str(ip)}
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
 
@@ -214,6 +216,9 @@ def start_update(domains, email, api_key, cache_file, force=False, debug=False):
 def main(ctx, domains, email, api_key, cache_file, force, debug):
     """A simple command line script to update CloudFlare DNS A records
     with the current IP address of the machine running the script.
+
+    For the main domain (the "@" record), simply put "example.com" \b
+    Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
     """
     try:
         success = start_update(domains, email, api_key, cache_file, force, debug)
