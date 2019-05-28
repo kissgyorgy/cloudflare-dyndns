@@ -149,7 +149,6 @@ def start_update(domains, email, api_key, cache_file, debug=False):
                 click.secho(f'Failed to get domain records for "{domain}"', fg="red")
                 success = False
                 continue
-            cache.update_domain(domain, zone_id, record_id)
 
         try:
             cf.update_A_record(current_ip, domain, zone_id, record_id)
@@ -157,6 +156,8 @@ def start_update(domains, email, api_key, cache_file, debug=False):
             click.secho(f'Failed to update domain "{domain}"', fg="red")
             success = False
             continue
+        else:
+            cache.update_domain(domain, zone_id, record_id)
 
     cache.save()
     click.secho("Done.", fg="green")
