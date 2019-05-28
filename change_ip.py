@@ -21,7 +21,12 @@ GET_IP_SERVICES = [
 def get_ip(service_urls):
     print("Checking current IP address...")
     for ip_service in service_urls:
-        res = requests.get(ip_service)
+        try:
+            res = requests.get(ip_service)
+        except requests.exceptions.RequestException:
+            print(f"Service {ip_service} unreachable, skipping.")
+            continue
+
         if res.ok:
             ip = ipaddress.IPv4Address(res.text.strip())
             print(f"Current IP address from {ip_service}: {ip}")
