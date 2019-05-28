@@ -19,8 +19,8 @@ class IPServiceError(Exception):
 
 
 def get_ip(service_urls):
-    click.echo("Checking current IP address...")
     for ip_service in service_urls:
+        click.echo(f"Checking current IP address with service: {ip_service}")
         try:
             res = requests.get(ip_service)
         except requests.exceptions.RequestException:
@@ -29,7 +29,7 @@ def get_ip(service_urls):
 
         if res.ok:
             ip = ipaddress.IPv4Address(res.text.strip())
-            click.echo(f"Current IP address from {ip_service}: {ip}")
+            click.echo(f"Current IP address: {ip}")
             return ip
     else:
         raise IPServiceError
@@ -116,7 +116,7 @@ def start_update(domains, email, api_key, cache_file):
     current_ip = get_ip(GET_IP_SERVICES)
 
     if current_ip == cache.get_ip():
-        click.echo("IP address is unchanged")
+        click.echo("IP address is unchanged, quitting.")
         return
     else:
         cache.set_ip(current_ip)
