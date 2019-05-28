@@ -38,8 +38,11 @@ def get_ip(service_urls):
 class Cache:
     def __init__(self, cache_path: str, debug=False):
         self._path = Path(cache_path)
-        self._cache = {"ip": None, "zone_records": {}, "updated_domains": set()}
+        self._cache = self._make_default()
         self._debug = debug
+
+    def _make_default(self):
+        return {"ip": None, "zone_records": {}, "updated_domains": set()}
 
     def load(self):
         click.echo(f"Loading cache from {self._path}")
@@ -49,10 +52,11 @@ class Cache:
                 if self._debug:
                     click.echo(f"Loaded cache: {self._cache}")
         except FileNotFoundError:
-            pass
+            click.secho("Cache file not found")
+            self._cache = self._make_default()
         except pickle.PickleError:
             click.secho("Invalid cache file, deleting", fg="yellow")
-            self._path.unlink()
+            self.delete()
 
     def save(self):
         message = "Saving cache"
@@ -61,6 +65,10 @@ class Cache:
         click.echo(message)
         with self._path.open("wb") as fp:
             pickle.dump(self._cache, fp)
+
+    def delete(self):
+        self._path.unlink()
+        self._cache = self._make_default()
 
     def get_ip(self):
         return self._cache["ip"]
@@ -118,10 +126,11 @@ class CloudFlareClient:
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
 
-def start_update(domains, email, api_key, cache_file, debug=False):
+def start_update(domains, email, api_key, cache_file, force=False, debug=False):
     success = True
     cache = Cache(cache_file, debug)
-    cache.load()
+    if not force:
+        cache.load()
     cf = CloudFlareClient(email, api_key)
 
     current_ip = get_ip(GET_IP_SERVICES)
@@ -132,14 +141,20 @@ def start_update(domains, email, api_key, cache_file, debug=False):
         )
     missing_domains = set(domains) - cache.get_updated()
 
-    if current_ip == cache.get_ip() and not missing_domains:
+    if force:
+        click.secho("Forced update, deleting cache.", fg="yellow")
+        cache.delete()
+        cache.set_ip(current_ip)
+        domains_to_update = domains
+    elif current_ip == cache.get_ip() and not missing_domains:
         click.secho("Every domain is up-to-date, quitting.", fg="green")
         return success
     else:
         cache.set_ip(current_ip)
+        domains_to_update = missing_domains
 
-    click.echo(f"Updating A records for domains: {', '.join(missing_domains)}...")
-    for domain in missing_domains:
+    click.echo(f"Updating A records for domains: {', '.join(domains_to_update)}...")
+    for domain in domains_to_update:
         try:
             zone_id, record_id = cache.get_ids(domain)
         except KeyError:
@@ -191,16 +206,17 @@ def start_update(domains, email, api_key, cache_file, debug=False):
     default="cfdns.cache",
     show_default=True,
 )
+@click.option("--force", is_flag=True, help="Delete cache and update every domain")
 @click.option(
     "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
 )
 @click.pass_context
-def main(ctx, domains, email, api_key, cache_file, debug):
+def main(ctx, domains, email, api_key, cache_file, force, debug):
     """A simple command line script to update CloudFlare DNS A records
     with the current IP address of the machine running the script.
     """
     try:
-        success = start_update(domains, email, api_key, cache_file, debug)
+        success = start_update(domains, email, api_key, cache_file, force, debug)
     except IPServiceError:
         click.secho(IPServiceError.__doc__, fg="red")
         ctx.exit(1)
