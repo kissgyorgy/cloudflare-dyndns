@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
-import sys
 import json
 import ipaddress
 from pathlib import Path
+import click
 import requests
 import CloudFlare
-
-CACHE_PATH = "cfdns.cache"
-CLOUDFLARE_EMAIL = "admin@example.com"
-CLOUDFLARE_API_KEY = "<api key from CloudFlare My Profile>"
-DOMAINS_TO_UPDATE = []
 
 GET_IP_SERVICES = [
     "https://ifconfig.co/ip",
@@ -24,17 +19,17 @@ class IPServiceError(Exception):
 
 
 def get_ip(service_urls):
-    print("Checking current IP address...")
+    click.echo("Checking current IP address...")
     for ip_service in service_urls:
         try:
             res = requests.get(ip_service)
         except requests.exceptions.RequestException:
-            print(f"Service {ip_service} unreachable, skipping.")
+            click.echo(f"Service {ip_service} unreachable, skipping.")
             continue
 
         if res.ok:
             ip = ipaddress.IPv4Address(res.text.strip())
-            print(f"Current IP address from {ip_service}: {ip}")
+            click.echo(f"Current IP address from {ip_service}: {ip}")
             return ip
     else:
         raise IPServiceError
@@ -46,18 +41,18 @@ class Cache:
         self._cache = {"ip": None, "zone_records": {}}
 
     def load(self):
-        print(f"Loading cache from {self._path}")
+        click.echo(f"Loading cache from {self._path}")
         try:
             with self._path.open() as fp:
                 self._cache = json.load(fp)
         except FileNotFoundError:
             pass
         except json.JSONDecodeError:
-            print("Invalid cache file, deleting")
+            click.echo("Invalid cache file, deleting")
             self._path.unlink()
 
     def save(self):
-        print("Saving cache")
+        click.echo("Saving cache")
         with self._path.open("w") as fp:
             json.dump(self._cache, fp)
 
@@ -108,25 +103,26 @@ class CloudFlareClient:
         return zone["id"], record["id"]
 
     def update_A_record(self, ip, domain, zone_id, record_id):
-        print(f'Updating "{domain}" A record.')
+        click.echo(f'Updating "{domain}" A record.')
         payload = {"name": "@", "type": "A", "content": str(ip)}
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
 
-def start_update():
-    cache = Cache(CACHE_PATH)
+def start_update(domains, email, api_key, cache_file):
+    cache = Cache(cache_file)
     cache.load()
-    cf = CloudFlareClient(CLOUDFLARE_EMAIL, CLOUDFLARE_API_KEY)
+    cf = CloudFlareClient(email, api_key)
 
     current_ip = get_ip(GET_IP_SERVICES)
 
     if current_ip == cache.get_ip():
-        print("IP address is unchanged")
+        click.echo("IP address is unchanged")
         return
     else:
         cache.set_ip(current_ip)
 
-    for domain in DOMAINS_TO_UPDATE:
+    click.echo(f"Updating A records for domains: {', '.join(domains)}...")
+    for domain in domains:
         try:
             zone_id, record_id = cache.get_ids(domain)
         except KeyError:
@@ -136,23 +132,53 @@ def start_update():
         cf.update_A_record(current_ip, domain, zone_id, record_id)
 
     cache.save()
-    print("Done.")
+    click.echo("Done.")
 
 
-def main():
+@click.command()
+@click.argument("domains", nargs=-1, required=True)
+@click.option(
+    "--email",
+    envvar="CLOUDFLARE_EMAIL",
+    required=True,
+    help=(
+        "CloudFlare account email. "
+        "Can be set with CLOUDFLARE_EMAIL environment variable"
+    ),
+)
+@click.option(
+    "--api-key",
+    required=True,
+    envvar="CLOUDFLARE_API_KEY",
+    help=(
+        "CloudFlare API key (You can find it at My Profile page). "
+        "Can be set with CLOUDFLARE_API_KEY environment variable."
+    ),
+)
+@click.option(
+    "--cache-file",
+    help="Cache file",
+    type=click.Path(dir_okay=False, writable=True, readable=True),
+    default="cfdns.cache",
+    show_default=True,
+)
+@click.pass_context
+def main(ctx, domains, email, api_key, cache_file):
+    """A simple command line script to update CloudFlare DNS A records
+    with the current IP address of the machine running the script.
+    """
     try:
-        start_update()
+        start_update(domains, email, api_key, cache_file)
     except IPServiceError:
-        print(IPServiceError.__doc__)
-        return 1
+        click.secho(IPServiceError.__doc__, fg="red")
+        ctx.exit(1)
     except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
-        print(e)
-        return 2
-    except Exception:
-        return 3
-    else:
-        return 0
+        click.secho(e, fg="red")
+        ctx.exit(2)
+    except Exception as e:
+        click.secho(f"Unknown error: {e}", fg="red")
+        ctx.exit(3)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
