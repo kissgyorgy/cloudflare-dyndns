@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import json
 import ipaddress
@@ -5,7 +6,7 @@ from pathlib import Path
 import requests
 import CloudFlare
 
-CACHE_PATH = "change-ip.cache"
+CACHE_PATH = "cfdns.cache"
 CLOUDFLARE_EMAIL = "admin@example.com"
 CLOUDFLARE_API_KEY = "<api key from CloudFlare My Profile>"
 DOMAINS_TO_UPDATE = []
