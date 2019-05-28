@@ -36,15 +36,18 @@ def get_ip(service_urls):
 
 
 class Cache:
-    def __init__(self, cache_path: str):
+    def __init__(self, cache_path: str, debug=False):
         self._path = Path(cache_path)
         self._cache = {"ip": None, "zone_records": {}, "updated_domains": set()}
+        self._debug = debug
 
     def load(self):
         click.echo(f"Loading cache from {self._path}")
         try:
             with self._path.open("rb") as fp:
                 self._cache = pickle.load(fp)
+                if self._debug:
+                    click.echo(f"Loaded cache: {self._cache}")
         except FileNotFoundError:
             pass
         except pickle.PickleError:
@@ -52,7 +55,10 @@ class Cache:
             self._path.unlink()
 
     def save(self):
-        click.echo("Saving cache")
+        message = "Saving cache"
+        if self._debug:
+            message += f": {self._cache}"
+        click.echo(message)
         with self._path.open("wb") as fp:
             pickle.dump(self._cache, fp)
 
@@ -112,16 +118,18 @@ class CloudFlareClient:
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
 
-def start_update(domains, email, api_key, cache_file):
+def start_update(domains, email, api_key, cache_file, debug=False):
     success = True
-    cache = Cache(cache_file)
+    cache = Cache(cache_file, debug)
     cache.load()
     cf = CloudFlareClient(email, api_key)
 
     current_ip = get_ip(GET_IP_SERVICES)
-    click.secho(
-        f"Domains with this IP address: {', '.join(cache.get_updated())}", fg="green"
-    )
+    if debug:
+        click.secho(
+            f"Domains with this IP address: {', '.join(cache.get_updated())}",
+            fg="green",
+        )
     missing_domains = set(domains) - cache.get_updated()
 
     if current_ip == cache.get_ip() and not missing_domains:
@@ -182,21 +190,28 @@ def start_update(domains, email, api_key, cache_file):
     default="cfdns.cache",
     show_default=True,
 )
+@click.option(
+    "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
+)
 @click.pass_context
-def main(ctx, domains, email, api_key, cache_file):
+def main(ctx, domains, email, api_key, cache_file, debug):
     """A simple command line script to update CloudFlare DNS A records
     with the current IP address of the machine running the script.
     """
     try:
-        success = start_update(domains, email, api_key, cache_file)
+        success = start_update(domains, email, api_key, cache_file, debug)
     except IPServiceError:
         click.secho(IPServiceError.__doc__, fg="red")
         ctx.exit(1)
     except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
         click.secho(e, fg="red")
+        if debug:
+            raise
         ctx.exit(2)
     except Exception as e:
         click.secho(f"Unknown error: {e}", fg="red")
+        if debug:
+            raise
         ctx.exit(3)
 
     if not success:
