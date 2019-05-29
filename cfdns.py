@@ -129,20 +129,12 @@ class CloudFlareClient:
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
 
-def start_update(domains, email, api_key, cache_file, force=False, debug=False):
-    success = True
-    cache = Cache(cache_file, debug)
-    if not force:
-        cache.load()
-    cf = CloudFlareClient(email, api_key)
-
-    current_ip = get_ip(GET_IP_SERVICES)
-
+def get_domains(domains, force, current_ip, cache, debug=False):
     if force:
         click.secho("Forced update, deleting cache.", fg="yellow")
         cache.delete()
         cache.set_ip(current_ip)
-        domains_to_update = domains
+        return domains
 
     elif current_ip == cache.get_ip():
         if debug:
@@ -153,16 +145,19 @@ def start_update(domains, email, api_key, cache_file, force=False, debug=False):
         missing_domains = set(domains) - cache.get_updated()
         if not missing_domains:
             click.secho("Every domain is up-to-date, quitting.", fg="green")
-            return success
+            return None
         else:
-            domains_to_update = missing_domains
+            return missing_domains
 
     else:
         cache.set_ip(current_ip)
-        domains_to_update = domains
+        return domains
 
-    click.echo(f"Updating A records for domains: {', '.join(domains_to_update)}...")
-    for domain in domains_to_update:
+
+def update_domains(cf, domains, cache, current_ip):
+    success = True
+    click.echo(f"Updating A records for domains: {', '.join(domains)}...")
+    for domain in domains:
         try:
             zone_id, record_id = cache.get_ids(domain)
         except KeyError:
@@ -182,8 +177,6 @@ def start_update(domains, email, api_key, cache_file, force=False, debug=False):
         else:
             cache.update_domain(domain, zone_id, record_id)
 
-    cache.save()
-    click.secho("Done.", fg="green")
     return success
 
 
@@ -227,10 +220,22 @@ def main(ctx, domains, email, api_key, cache_file, force, debug):
     Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
     """
     try:
-        success = start_update(domains, email, api_key, cache_file, force, debug)
+        current_ip = get_ip(GET_IP_SERVICES)
     except IPServiceError:
         click.secho(IPServiceError.__doc__, fg="red")
         ctx.exit(1)
+
+    cache = Cache(cache_file, debug)
+    cf = CloudFlareClient(email, api_key)
+
+    try:
+        if not force:
+            cache.load()
+        domains_to_update = get_domains(domains, force, current_ip, cache, debug)
+        if not domains_to_update:
+            return
+        success = update_domains(cf, domains_to_update, cache, current_ip)
+        cache.save()
     except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
         click.secho(e, fg="red")
         if debug:
@@ -245,6 +250,8 @@ def main(ctx, domains, email, api_key, cache_file, force, debug):
     if not success:
         click.secho("There were some errors during update.", fg="yellow")
         ctx.exit(2)
+
+    click.secho("Done.", fg="green")
 
 
 if __name__ == "__main__":
