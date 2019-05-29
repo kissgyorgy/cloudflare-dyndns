@@ -137,24 +137,29 @@ def start_update(domains, email, api_key, cache_file, force=False, debug=False):
     cf = CloudFlareClient(email, api_key)
 
     current_ip = get_ip(GET_IP_SERVICES)
-    if debug:
-        click.secho(
-            f"Domains with this IP address: {', '.join(cache.get_updated())}",
-            fg="green",
-        )
-    missing_domains = set(domains) - cache.get_updated()
 
     if force:
         click.secho("Forced update, deleting cache.", fg="yellow")
         cache.delete()
         cache.set_ip(current_ip)
         domains_to_update = domains
-    elif current_ip == cache.get_ip() and not missing_domains:
-        click.secho("Every domain is up-to-date, quitting.", fg="green")
-        return success
+
+    elif current_ip == cache.get_ip():
+        if debug:
+            click.secho(
+                f"Domains with this IP address: {', '.join(cache.get_updated())}",
+                fg="green",
+            )
+        missing_domains = set(domains) - cache.get_updated()
+        if not missing_domains:
+            click.secho("Every domain is up-to-date, quitting.", fg="green")
+            return success
+        else:
+            domains_to_update = missing_domains
+
     else:
         cache.set_ip(current_ip)
-        domains_to_update = missing_domains
+        domains_to_update = domains
 
     click.echo(f"Updating A records for domains: {', '.join(domains_to_update)}...")
     for domain in domains_to_update:
