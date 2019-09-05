@@ -6,11 +6,36 @@ import click
 import requests
 import CloudFlare
 
-GET_IP_SERVICES = [
-    "https://ifconfig.co/ip",
-    "https://checkip.amazonaws.com/",
-    "https://ifconfig.me/ip",
-    "https://dynamicdns.park-your-domain.com/getip",
+
+def strip_whitespace(res):
+    """Strip whitespaces from the IP service response."""
+    return res.strip()
+
+
+IPService = namedtuple("IPService", "name, url, response_parser")
+
+IP_SERVICES = [
+    # fmt: off
+    IPService(
+        "ifconfig.co (https://github.com/mpolden/echoip)",
+        "https://ifconfig.co/ip",
+        strip_whitespace,
+    ),
+    IPService(
+        "AWS check ip",
+        "https://checkip.amazonaws.com/",
+        strip_whitespace,
+    ),
+    IPService(
+        "ifconfig.me",
+        "https://ifconfig.me/ip",
+        strip_whitespace,
+    ),
+    IPService(
+        "Namecheap DynamicDNS",
+        "https://dynamicdns.park-your-domain.com/getip",
+        strip_whitespace,
+    ),
 ]
 
 
@@ -18,19 +43,25 @@ class IPServiceError(Exception):
     """Couldn't determine current IP address."""
 
 
-def get_ip(service_urls):
-    for ip_service in service_urls:
-        click.echo(f"Checking current IP address with service: {ip_service}")
+def get_ip(ip_services):
+    for ip_service in ip_services:
+        click.echo(
+            f"Checking current IP address with service: {ip_service.name} ({ip_service.url})"
+        )
         try:
-            res = requests.get(ip_service)
+            res = requests.get(ip_service.url)
         except requests.exceptions.RequestException:
-            click.echo(f"Service {ip_service} unreachable, skipping.")
+            click.echo(f"Service {ip_service.url} unreachable, skipping.")
             continue
 
-        if res.ok:
-            ip = ipaddress.IPv4Address(res.text.strip())
-            click.echo(f"Current IP address: {ip}")
-            return ip
+        if not res.ok:
+            continue
+
+        ip_str = ip_service.response_parser(res.text)
+        ip = ipaddress.IPv4Address(ip_str)
+        click.echo(f"Current IP address: {ip}")
+        return ip
+
     else:
         raise IPServiceError
 
@@ -220,7 +251,7 @@ def main(ctx, domains, email, api_key, cache_file, force, debug):
     Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
     """
     try:
-        current_ip = get_ip(GET_IP_SERVICES)
+        current_ip = get_ip(IP_SERVICES)
     except IPServiceError:
         click.secho(IPServiceError.__doc__, fg="red")
         ctx.exit(1)
