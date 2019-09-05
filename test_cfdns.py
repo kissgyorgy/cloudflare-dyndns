@@ -18,3 +18,12 @@ sni=off
 warp=off
 """
     assert cfdns.parse_cloudflare_trace_ip(trace_service_response) == "199.12.81.4"
+
+
+@pytest.mark.parametrize("service_url", (s.url for s in cfdns.IP_SERVICES))
+def test_services_available(service_url):
+    """This test hits all the services to check if they still work.
+    It is an integration test.
+    """
+    res = requests.get(service_url)
+    assert res.ok
