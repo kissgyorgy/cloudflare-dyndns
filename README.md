@@ -11,6 +11,10 @@ similar to the classic [ddclient perl script](https://sourceforge.net/p/ddclient
 
 
 ## Install
+If you want to just use it, you can download a standalone binary from the releases page:  
+https://github.com/kissgyorgy/cloudflare-dyndns/releases/
+
+## Development
 You can install dependencies with poetry (preferable in a virtualenv).  
 After [installing poetry](https://poetry.eustace.io/docs/#installation), simply run:  
 ```bash
