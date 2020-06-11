@@ -40,7 +40,7 @@ def make_exe(dist):
     #     verbose=0,
     #     write_modules_directory_env=None,
     #     run_eval=None,
-    #     run_module=None,
+    run_module="cfdns",
     #     run_noop=False,
     #     run_repl=True,
     )
@@ -100,17 +100,15 @@ def make_exe(dist):
 
     # Invoke `pip install` using a requirements file and add the collected resources
     # to our binary.
-    #exe.add_in_memory_python_resources(dist.pip_install(["-r", "requirements.txt"]))
-
-    
+    exe.add_in_memory_python_resources(dist.pip_install(["-r", "requirements.txt"]))
 
     # Read Python files from a local directory and add them to our embedded
     # context, taking just the resources belonging to the `foo` and `bar`
     # Python packages.
-    #exe.add_in_memory_python_resources(dist.read_package_root(
-    #    path="/src/mypackage",
-    #    packages=["foo", "bar"],
-    #))
+    exe.add_in_memory_python_resources(dist.read_package_root(
+        path=".",
+        packages=["cfdns"],
+    ))
 
     # Discover Python files from a virtualenv and add them to our embedded
     # context.

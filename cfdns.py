@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
+import os
 import pickle
 import ipaddress
 from pathlib import Path
 from collections import namedtuple
 import click
+import certifi
+
+# Workaround for certifi resource location doesn't work with PyOxidizer.
+# See: https://github.com/psf/requests/blob/v2.23.0/requests/utils.py#L40
+# and: https://github.com/indygreg/PyOxidizer/issues/237
+certifi.where = lambda: os.environ.get(
+    "REQUESTS_CA_BUNDLE", "/etc/ssl/certs/ca-certificates.crt"
+)
+
 import requests
 import CloudFlare
 
