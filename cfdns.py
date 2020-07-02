@@ -227,7 +227,6 @@ def get_domains(domains, force, current_ip, cache, debug=False):
 
 def update_domains(cf, domains, cache, current_ip):
     success = True
-    click.echo(f"Updating A records for domains: {', '.join(domains)}...")
     for domain in domains:
         try:
             zone_id, record_id = cache.get_ids(domain)
@@ -251,25 +250,35 @@ def update_domains(cf, domains, cache, current_ip):
     return success
 
 
+# workaround for: https://github.com/pallets/click/issues/729
 def _parse_domains_args(domains: Iterable, domains_env: str):
     if not domains and not domains_env:
         raise click.BadArgumentUsage(
-            "You need to specify either domains argument or DOMAINS environment variable!"
+            "You need to specify either domains argument or CLOUDFLARE_DOMAINS environment variable!"
         )
     elif domains and domains_env:
         raise click.BadArgumentUsage(
-            "Ambiguous domain list, use either argument list or DOMAINS environment variable, not both!"
+            "Ambiguous domain list, use either argument list or CLOUDFLARE_DOMAINS environment variable, not both!"
         )
     elif domains_env:
-        domains = re.split("[\s,]+", domains_env)
+        domains = domains_env
 
     click.echo("Domains to update: " + ", ".join(domains))
     return domains
 
 
 @click.command()
-@click.argument("domains", nargs=-1)
-@click.option("--domains-env", envvar="DOMAINS")
+@click.argument("domains_arg", metavar="[DOMAINS]", nargs=-1)
+@click.option(
+    "--domains",
+    envvar="CLOUDFLARE_DOMAINS",
+    multiple=True,
+    help=(
+        "The list of domains to update, separated by whitespace. "
+        "It has to be ONE argument, so don't forget to quote! "
+        "Can be set with the CLOUDFLARE_DOMAINS environment variable."
+    ),
+)
 @click.option(
     "--email",
     envvar="CLOUDFLARE_EMAIL",
@@ -300,14 +309,14 @@ def _parse_domains_args(domains: Iterable, domains_env: str):
     "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
 )
 @click.pass_context
-def main(ctx, domains, domains_env, email, api_key, cache_file, force, debug):
+def main(ctx, domains_arg, domains, email, api_key, cache_file, force, debug):
     """A simple command line script to update CloudFlare DNS A records
     with the current IP address of the machine running the script.
 
     For the main domain (the "@" record), simply put "example.com" \b
     Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
     """
-    domains = _parse_domains_args(domains, domains_env)
+    domains = _parse_domains_args(domains_arg, domains)
 
     try:
         current_ip = get_ip(IP_SERVICES)
