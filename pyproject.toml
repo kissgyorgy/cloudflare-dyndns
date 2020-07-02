@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cloudflare-dyndns"
-version = "0.1.0"
+version = "1.1"
 description = "CloudFlare Dynamic DNS client"
 authors = ["Kiss György <kissgyorgy@me.com>"]
 license = "MIT"
