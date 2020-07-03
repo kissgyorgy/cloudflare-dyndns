@@ -9,24 +9,25 @@ similar to the classic [ddclient perl script](https://sourceforge.net/p/ddclient
 - It checks multiple IP services. If one of them doesn't respond, it skips it and check the next.
 - It has an easy to use command line interface.
 
-
 ## Install
+
 If you want to just use it, you can download a standalone binary from the releases page:  
 https://github.com/kissgyorgy/cloudflare-dyndns/releases/
 
 ## Development
+
 You can install dependencies with poetry (preferable in a virtualenv).  
-After [installing poetry](https://poetry.eustace.io/docs/#installation), simply run:  
+After [installing poetry](https://poetry.eustace.io/docs/#installation), simply run:
+
 ```bash
 $ poetry install
 ```
-
 
 ## Command line interface
 
 ```bash
 $ cfdns.py --help
-Usage: cfdns.py [OPTIONS] DOMAINS...
+Usage: cfdns.py [OPTIONS] [DOMAINS]
 
   A simple command line script to update CloudFlare DNS A records with the
   current IP address of the machine running the script.
@@ -35,6 +36,9 @@ Usage: cfdns.py [OPTIONS] DOMAINS...
   Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
 
 Options:
+  --domains TEXT     The list of domains to update, separated by whitespace.
+                     It has to be ONE argument, so don't forget to quote! Can
+                     be set with the CLOUDFLARE_DOMAINS environment variable.
   --email TEXT       CloudFlare account email. Can be set with
                      CLOUDFLARE_EMAIL environment variable  [required]
   --api-key TEXT     CloudFlare API key (You can find it at My Profile page).
