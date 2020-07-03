@@ -11,8 +11,13 @@ similar to the classic [ddclient perl script](https://sourceforge.net/p/ddclient
 
 ## Install
 
-If you want to just use it, you can download a standalone binary from the releases page:  
-https://github.com/kissgyorgy/cloudflare-dyndns/releases/
+If you want to just use it, you can [download a standalone binary from the releases page.](https://github.com/kissgyorgy/cloudflare-dyndns/releases/)
+
+Or you can use [the Docker image](https://hub.docker.com/repository/docker/kissgyorgy/cloudflare-dyndns):
+
+```bash
+$ docker run --rm -it kissgyorgy/cloudflare-dyndns --help
+```
 
 ## Development
 
