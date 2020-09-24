@@ -11,6 +11,7 @@ ENV PATH=$PATH:/app/.local/bin
 RUN pip install --no-cache-dir poetry
 
 COPY pyproject.toml poetry.lock /app/
+COPY README.md /app/
 COPY cloudflare_dyndns.py /app/
 RUN poetry install --no-dev
 
