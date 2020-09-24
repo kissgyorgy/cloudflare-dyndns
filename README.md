@@ -11,7 +11,13 @@ similar to the classic [ddclient perl script](https://sourceforge.net/p/ddclient
 
 ## Install
 
-If you want to just use it, you can [download a standalone binary from the releases page.](https://github.com/kissgyorgy/cloudflare-dyndns/releases/)
+You can simply install it with pip [from PyPI](https://pypi.org/project/cloudflare-dyndns/):
+
+```bash
+$ pip install cloudflare-dyndns
+```
+
+Or you can [download a standalone binary from the releases page.](https://github.com/kissgyorgy/cloudflare-dyndns/releases/)
 
 Or you can use [the Docker image](https://hub.docker.com/repository/docker/kissgyorgy/cloudflare-dyndns):
 
