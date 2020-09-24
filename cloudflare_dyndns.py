@@ -12,9 +12,7 @@ import certifi
 # Workaround for certifi resource location doesn't work with PyOxidizer.
 # See: https://github.com/psf/requests/blob/v2.23.0/requests/utils.py#L40
 # and: https://github.com/indygreg/PyOxidizer/issues/237
-certifi.where = lambda: os.environ.get(
-    "REQUESTS_CA_BUNDLE", "/etc/ssl/certs/ca-certificates.crt"
-)
+certifi.where = lambda: os.environ.get("REQUESTS_CA_BUNDLE", "/etc/ssl/certs/ca-certificates.crt")
 
 import requests
 import CloudFlare
@@ -182,9 +180,7 @@ class CloudFlareClient:
         except IndexError:
             raise CloudFlareError(f'Cannot find domain "{domain}" at CloudFlare')
 
-        dns_records = self._cf.zones.dns_records.get(
-            zone["id"], params={"name": domain}
-        )
+        dns_records = self._cf.zones.dns_records.get(zone["id"], params={"name": domain})
 
         for record in dns_records:
             if record["type"] == "A" and record["name"] == domain:
@@ -283,10 +279,7 @@ def _parse_domains_args(domains: Iterable, domains_env: str):
     "--email",
     envvar="CLOUDFLARE_EMAIL",
     required=True,
-    help=(
-        "CloudFlare account email. "
-        "Can be set with CLOUDFLARE_EMAIL environment variable"
-    ),
+    help=("CloudFlare account email. " "Can be set with CLOUDFLARE_EMAIL environment variable"),
 )
 @click.option(
     "--api-key",
@@ -301,13 +294,11 @@ def _parse_domains_args(domains: Iterable, domains_env: str):
     "--cache-file",
     help="Cache file",
     type=click.Path(dir_okay=False, writable=True, readable=True),
-    default="~/.cache/cfdns/cfdns.cache",
+    default="~/.cache/cloudflare-dynds/ip.cache",
     show_default=True,
 )
 @click.option("--force", is_flag=True, help="Delete cache and update every domain")
-@click.option(
-    "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
-)
+@click.option("--debug", is_flag=True, help="More verbose messages and Exception tracebacks")
 @click.pass_context
 def main(ctx, domains_arg, domains, email, api_key, cache_file, force, debug):
     """A simple command line script to update CloudFlare DNS A records

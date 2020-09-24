@@ -11,6 +11,9 @@ click = "^7.0"
 cloudflare = "^2.3"
 requests = "^2.22"
 
+[tool.poetry.scripts]
+cloudflare-dyndns = 'cloudflare_dyndns:main'
+
 [tool.poetry.dev-dependencies]
 nuitka = "^0.6.3"
 pytest = "^5.1"

@@ -1,6 +1,6 @@
 import pytest
 import requests
-import cfdns
+import cloudflare_dyndns as cfdns
 
 
 def test_parse_cloudflare_trace_ip():
@@ -26,4 +26,4 @@ def test_services_available(service_url):
     It is an integration test.
     """
     res = requests.get(service_url)
-    assert res.ok
+    assert res.ok is True

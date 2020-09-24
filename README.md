@@ -31,8 +31,8 @@ $ poetry install
 ## Command line interface
 
 ```bash
-$ cfdns.py --help
-Usage: cfdns.py [OPTIONS] [DOMAINS]
+$ cloudflare-dyndns --help
+Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]
 
   A simple command line script to update CloudFlare DNS A records with the
   current IP address of the machine running the script.
@@ -44,12 +44,15 @@ Options:
   --domains TEXT     The list of domains to update, separated by whitespace.
                      It has to be ONE argument, so don't forget to quote! Can
                      be set with the CLOUDFLARE_DOMAINS environment variable.
+
   --email TEXT       CloudFlare account email. Can be set with
                      CLOUDFLARE_EMAIL environment variable  [required]
+
   --api-key TEXT     CloudFlare API key (You can find it at My Profile page).
                      Can be set with CLOUDFLARE_API_KEY environment variable.
                      [required]
-  --cache-file FILE  Cache file  [default: ~/.cache/cfdns/cfdns.cache]
+
+  --cache-file FILE  Cache file  [default: ~/.cache/cloudflare-dynds/ip.cache]
   --force            Delete cache and update every domain
   --debug            More verbose messages and Exception tracebacks
   --help             Show this message and exit.

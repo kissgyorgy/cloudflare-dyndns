@@ -11,8 +11,7 @@ ENV PATH=$PATH:/app/.local/bin
 RUN pip install --no-cache-dir poetry
 
 COPY pyproject.toml poetry.lock /app/
+COPY cloudflare_dyndns.py /app/
 RUN poetry install --no-dev
 
-COPY cfdns.py /app/
-
-ENTRYPOINT ["python", "cfdns.py"]
+ENTRYPOINT ["cloudflare-dyndns"]
