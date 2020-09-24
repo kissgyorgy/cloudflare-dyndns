@@ -57,3 +57,14 @@ Options:
   --debug            More verbose messages and Exception tracebacks
   --help             Show this message and exit.
 ```
+
+# Changelog
+
+**v2.0** breaks backward compatibility for a PyPI release.
+
+The script you need to run is now called `cloudflare-dyndns` and the cache file
+also changed. You can delete the old cache manually, or you can leave it, it
+won't cause a problem.
+
+The Docker file entry point is changed, so if you pull the new image, everything
+will work as before.
