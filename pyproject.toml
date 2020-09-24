@@ -1,9 +1,12 @@
 [tool.poetry]
 name = "cloudflare-dyndns"
-version = "2.0"
+version = "2.1"
 description = "CloudFlare Dynamic DNS client"
 authors = ["Kiss György <kissgyorgy@me.com>"]
 license = "MIT"
+readme = "README.md"
+repository = "https://github.com/kissgyorgy/cloudflare-dyndns"
+
 
 [tool.poetry.dependencies]
 python = "^3.6"
