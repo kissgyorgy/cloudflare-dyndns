@@ -40,7 +40,7 @@ def make_exe(dist):
     #     verbose=0,
     #     write_modules_directory_env=None,
     #     run_eval=None,
-    run_module="cfdns",
+    run_module="cloudflare_dyndns",
     #     run_noop=False,
     #     run_repl=True,
     )
@@ -61,7 +61,7 @@ def make_exe(dist):
     # resources, and other options. The returned object represents the
     # standalone executable that will be built.
     exe = dist.to_python_executable(
-        name="cfdns",
+        name="cloudflare-dyndns",
         config=python_config,
         # Embed all extension modules, making this a fully-featured Python.
         extension_module_filter='all',
@@ -107,7 +107,7 @@ def make_exe(dist):
     # Python packages.
     exe.add_in_memory_python_resources(dist.read_package_root(
         path=".",
-        packages=["cfdns"],
+        packages=["cloudflare_dyndns"],
     ))
 
     # Discover Python files from a virtualenv and add them to our embedded
