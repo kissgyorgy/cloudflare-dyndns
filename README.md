@@ -25,18 +25,9 @@ Or you can use [the Docker image](https://hub.docker.com/repository/docker/kissg
 $ docker run --rm -it kissgyorgy/cloudflare-dyndns --help
 ```
 
-## Development
-
-You can install dependencies with poetry (preferable in a virtualenv).  
-After [installing poetry](https://poetry.eustace.io/docs/#installation), simply run:
-
-```bash
-$ poetry install
-```
-
 ## Command line interface
 
-```bash
+```
 $ cloudflare-dyndns --help
 Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]
 
@@ -81,3 +72,12 @@ won't cause a problem.
 
 The Docker file entry point is changed, so if you pull the new image, everything
 will work as before.
+
+## Development
+
+You can install dependencies with poetry (preferable in a virtualenv).  
+After [installing poetry](https://poetry.eustace.io/docs/#installation), simply run:
+
+```bash
+$ poetry install
+```
