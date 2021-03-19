@@ -134,7 +134,7 @@ class Cache:
             pickle.dump(self._cache, fp)
 
     def delete(self):
-        self._path.unlink()
+        self._path.unlink(missing_ok=True)
         self._cache = self._make_default()
 
     def get_ip(self):
