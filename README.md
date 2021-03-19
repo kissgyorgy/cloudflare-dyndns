@@ -29,7 +29,7 @@ $ docker run --rm -it kissgyorgy/cloudflare-dyndns --help
 
 ```
 $ cloudflare-dyndns --help
-Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]
+Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]...
 
   A simple command line script to update CloudFlare DNS A records with the
   current IP address of the machine running the script.
@@ -37,11 +37,11 @@ Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]
   For the main domain (the "@" record), simply put "example.com"
   Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
 
-Options:
-  --domains TEXT     The list of domains to update, separated by whitespace.
-                     It has to be ONE argument, so don't forget to quote! Can
-                     be set with the CLOUDFLARE_DOMAINS environment variable.
+  You can set the list of domains to update in the CLOUDFLARE_DOMAINS
+  environment variable, in which the domains has to be separated by
+  whitespace, so don't forget to quote the value!
 
+Options:
   --api-token TEXT   CloudFlare API Token (You can create one at My Profile
                      page / API Tokens tab). Can be set with
                      CLOUDFLARE_API_TOKEN environment variable.  [required]
@@ -69,6 +69,9 @@ Upgrading from 2.0 is recommended.
 The script you need to run is now called `cloudflare-dyndns` and the cache file
 also changed. You can delete the old cache manually, or you can leave it, it
 won't cause a problem.
+  The `--domains` option is now gone, because it made no sense (it only existed
+  for reading from the envvar), but you can use the `CLOUDFLARE_DOMAINS` envvar
+  the same as before.
 
 The Docker file entry point is changed, so if you pull the new image, everything
 will work as before.
