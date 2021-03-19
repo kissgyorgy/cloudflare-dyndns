@@ -57,11 +57,6 @@ IP_SERVICES = [
         parse_cloudflare_trace_ip,
     ),
     IPService(
-        "ifconfig.co (https://github.com/mpolden/echoip)",
-        "https://ifconfig.co/ip",
-        strip_whitespace,
-    ),
-    IPService(
         "AWS check ip",
         "https://checkip.amazonaws.com/",
         strip_whitespace,
