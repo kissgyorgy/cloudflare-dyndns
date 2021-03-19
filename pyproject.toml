@@ -18,7 +18,6 @@ requests = "^2.22"
 cloudflare-dyndns = 'cloudflare_dyndns:main'
 
 [tool.poetry.dev-dependencies]
-nuitka = "^0.6.3"
 pytest = "^5.1"
 black = {version = "^19.10b0", allow-prereleases = true}
 
