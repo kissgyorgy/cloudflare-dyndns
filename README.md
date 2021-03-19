@@ -51,12 +51,9 @@ Options:
                      It has to be ONE argument, so don't forget to quote! Can
                      be set with the CLOUDFLARE_DOMAINS environment variable.
 
-  --email TEXT       CloudFlare account email. Can be set with
-                     CLOUDFLARE_EMAIL environment variable  [required]
-
-  --api-key TEXT     CloudFlare API key (You can find it at My Profile page).
-                     Can be set with CLOUDFLARE_API_KEY environment variable.
-                     [required]
+  --api-token TEXT   CloudFlare API Token (You can create one at My Profile
+                     page / API Tokens tab). Can be set with
+                     CLOUDFLARE_API_TOKEN environment variable.  [required]
 
   --cache-file FILE  Cache file  [default: ~/.cache/cloudflare-dynds/ip.cache]
   --force            Delete cache and update every domain
@@ -65,6 +62,16 @@ Options:
 ```
 
 # Changelog
+
+**v3.0** breaks backward compatibility using the global API Key
+
+You can only use API Tokens now, which you can create under `My Profile / API Tokens`:
+https://dash.cloudflare.com/profile/api-tokens.
+
+The problem with the previously used API Key is that it has global access to
+your Cloudflare account. With the new API Tokens, you can make the script
+permissions as narrow as needed.
+Upgrading from 2.0 is recommended.
 
 **v2.0** breaks backward compatibility for a PyPI release.
 

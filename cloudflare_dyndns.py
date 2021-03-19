@@ -169,8 +169,8 @@ class CloudFlareError(Exception):
 
 
 class CloudFlareClient:
-    def __init__(self, email, apikey):
-        self._cf = CloudFlare.CloudFlare(email=email, token=apikey)
+    def __init__(self, api_token):
+        self._cf = CloudFlare.CloudFlare(token=api_token)
 
     def get_records(self, domain):
         without_subdomains = ".".join(domain.rsplit(".")[-2:])
@@ -280,21 +280,12 @@ def _parse_domains_args(domains: Iterable, domains_env: str):
     ),
 )
 @click.option(
-    "--email",
-    envvar="CLOUDFLARE_EMAIL",
+    "--api-token",
     required=True,
+    envvar="CLOUDFLARE_API_TOKEN",
     help=(
-        "CloudFlare account email. "
-        "Can be set with CLOUDFLARE_EMAIL environment variable"
-    ),
-)
-@click.option(
-    "--api-key",
-    required=True,
-    envvar="CLOUDFLARE_API_KEY",
-    help=(
-        "CloudFlare API key (You can find it at My Profile page). "
-        "Can be set with CLOUDFLARE_API_KEY environment variable."
+        "CloudFlare API Token (You can create one at My Profile page / API Tokens tab). "
+        "Can be set with CLOUDFLARE_API_TOKEN environment variable."
     ),
 )
 @click.option(
@@ -309,7 +300,7 @@ def _parse_domains_args(domains: Iterable, domains_env: str):
     "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
 )
 @click.pass_context
-def main(ctx, domains_arg, domains, email, api_key, cache_file, force, debug):
+def main(ctx, domains_arg, domains, api_token, cache_file, force, debug):
     """A simple command line script to update CloudFlare DNS A records
     with the current IP address of the machine running the script.
 
@@ -325,7 +316,7 @@ def main(ctx, domains_arg, domains, email, api_key, cache_file, force, debug):
         ctx.exit(1)
 
     cache = Cache(cache_file, debug)
-    cf = CloudFlareClient(email, api_key)
+    cf = CloudFlareClient(api_token)
 
     try:
         if not force:
