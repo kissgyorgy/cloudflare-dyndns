@@ -180,10 +180,10 @@ def make_exe(dist):
     # python_config.run_command = "<code>"
 
     # Run a Python module as __main__ when the interpreter starts.
-    python_config.run_module = "cloudflare_dyndns"
+    # python_config.run_module = "cloudflare_dyndns"
 
     # Run a Python file when the interpreter starts.
-    # python_config.run_filename = "/path/to/file"
+    python_config.run_filename = "cloudflare_dyndns.py"
 
     # Produce a PythonExecutable from a Python distribution, embedded
     # resources, and other options. The returned object represents the
@@ -234,7 +234,7 @@ def make_exe(dist):
 
     # Invoke `pip install` using a requirements file and add the collected resources
     # to our binary.
-    exe.add_python_resources(exe.pip_install(["-r", "requirements.txt"]))
+    exe.add_python_resources(exe.pip_install(["--no-deps", "-r", "requirements.txt"]))
 
     # Read Python files from a local directory and add them to our embedded
     # context, taking just the resources belonging to the Python packages.
