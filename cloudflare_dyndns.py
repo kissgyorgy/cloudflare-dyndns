@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import os
 import pickle
-from typing import Optional
+from typing import Callable, Optional
 import ipaddress
 from typing import Iterable
 from pathlib import Path
-from collections import namedtuple
+import attr
 import click
 import certifi
 
@@ -47,7 +47,12 @@ def strip_whitespace(res):
     return res.strip()
 
 
-IPService = namedtuple("IPService", "name, url, response_parser")
+@attr.s(auto_attribs=True)
+class IPService:
+    name: str
+    url: str
+    response_parser: Callable = strip_whitespace
+
 
 IP_SERVICES = [
     # fmt: off
@@ -59,17 +64,14 @@ IP_SERVICES = [
     IPService(
         "AWS check ip",
         "https://checkip.amazonaws.com/",
-        strip_whitespace,
     ),
     IPService(
         "ifconfig.me",
         "https://ifconfig.me/ip",
-        strip_whitespace,
     ),
     IPService(
         "Namecheap DynamicDNS",
         "https://dynamicdns.park-your-domain.com/getip",
-        strip_whitespace,
     ),
 ]
 

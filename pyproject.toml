@@ -13,6 +13,7 @@ python = "^3.6"
 click = "^7.0"
 cloudflare = "^2.3"
 requests = "^2.22"
+attrs = "^20.3.0"
 
 [tool.poetry.scripts]
 cloudflare-dyndns = 'cloudflare_dyndns:main'
