@@ -205,11 +205,10 @@ def get_domains(domains, force, current_ip, cache, debug=False):
         return domains
 
     elif current_ip == cache.get_ip():
-        if debug:
-            click.secho(
-                f"Domains with this IP address: {', '.join(cache.get_updated())}",
-                fg="green",
-            )
+        click.secho(
+            f"Domains with this IP address in cache: {', '.join(cache.get_updated())}",
+            fg="green",
+        )
         missing_domains = set(domains) - cache.get_updated()
         if not missing_domains:
             click.secho("Every domain is up-to-date, quitting.", fg="green")
