@@ -66,10 +66,6 @@ IP_SERVICES = [
         "https://checkip.amazonaws.com/",
     ),
     IPService(
-        "ifconfig.me",
-        "https://ifconfig.me/ip",
-    ),
-    IPService(
         "Namecheap DynamicDNS",
         "https://dynamicdns.park-your-domain.com/getip",
     ),
