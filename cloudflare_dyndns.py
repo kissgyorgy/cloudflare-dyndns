@@ -165,6 +165,7 @@ class CloudFlareClient:
     def __init__(self, api_token):
         self._cf = CloudFlare.CloudFlare(token=api_token)
 
+    def get_zone_id(self, domain):
         without_subdomains = ".".join(domain.rsplit(".")[-2:])
         zone_list = self._cf.zones.get(params={"name": without_subdomains})
 
@@ -174,14 +175,16 @@ class CloudFlareClient:
         except IndexError:
             raise CloudFlareError(f'Cannot find domain "{domain}" at CloudFlare')
 
-        dns_records = self._cf.zones.dns_records.get(
-            zone["id"], params={"name": domain}
-        )
+        return zone["id"]
+
     def get_record(self, record_type, domain):
+        assert record_type in "A", "AAAA"
+        zone_id = self.get_zone_id(domain)
+        dns_records = self._cf.zones.dns_records.get(zone_id, params={"name": domain})
 
         for record in dns_records:
             if record["type"] == record_type and record["name"] == domain:
-                return zone["id"], record["id"]
+                return zone_id, record["id"]
 
         raise CloudFlareError(f"Cannot find {record_type} record for {domain}")
 
