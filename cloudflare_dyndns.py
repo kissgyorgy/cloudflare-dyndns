@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import functools
 import os
 import pickle
 from typing import Callable, Optional
@@ -18,6 +19,9 @@ certifi.where = lambda: os.environ.get(
 
 import requests
 import CloudFlare
+
+
+IPv4or6Address = Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
 
 
 def parse_cloudflare_trace_ip(res: str):
@@ -165,6 +169,7 @@ class CloudFlareClient:
     def __init__(self, api_token):
         self._cf = CloudFlare.CloudFlare(token=api_token)
 
+    @functools.lru_cache
     def get_zone_id(self, domain):
         without_subdomains = ".".join(domain.rsplit(".")[-2:])
         zone_list = self._cf.zones.get(params={"name": without_subdomains})
@@ -177,25 +182,36 @@ class CloudFlareClient:
 
         return zone["id"]
 
-    def get_record(self, record_type, domain):
-        assert record_type in "A", "AAAA"
+    @functools.lru_cache
+    def _get_records(self, domain):
         zone_id = self.get_zone_id(domain)
-        dns_records = self._cf.zones.dns_records.get(zone_id, params={"name": domain})
+        return self._cf.zones.dns_records.get(zone_id, params={"name": domain})
 
-        for record in dns_records:
+    @functools.lru_cache
+    def get_record_id(self, domain: str, record_type: str):
+        assert record_type in {"A", "AAAA"}
+
+        for record in self._get_records(domain):
             if record["type"] == record_type and record["name"] == domain:
-                return zone_id, record["id"]
+                return record["id"]
 
         raise CloudFlareError(f"Cannot find {record_type} record for {domain}")
 
-    def update_record(self, record_type, ip, domain, zone_id, record_id):
-        assert record_type in "A", "AAAA"
+    def update_record(
+        self,
+        domain: str,
+        ip: IPv4or6Address,
+        zone_id: Optional[str] = None,
+        record_id: Optional[str] = None,
+    ):
+        zone_id = zone_id or self.get_zone_id(domain)
+        record_id = record_id or self.get_record_id(domain, record_type)
         click.echo(f'Updating "{domain}" {record_type} record.')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
-    def set_record(self, record_type, ip, domain, zone_id):
-        assert record_type in "A", "AAAA"
+    def set_record(self, domain: str, ip: IPv4or6Address, record_type: str):
+        zone_id = self.get_zone_id(domain)
         click.echo(f'Creating a new {record_type} record for "{domain}".')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.post(zone_id, data=payload)
