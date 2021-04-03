@@ -165,7 +165,6 @@ class CloudFlareClient:
     def __init__(self, api_token):
         self._cf = CloudFlare.CloudFlare(token=api_token)
 
-    def get_records(self, domain):
         without_subdomains = ".".join(domain.rsplit(".")[-2:])
         zone_list = self._cf.zones.get(params={"name": without_subdomains})
 
@@ -178,19 +177,25 @@ class CloudFlareClient:
         dns_records = self._cf.zones.dns_records.get(
             zone["id"], params={"name": domain}
         )
+    def get_record(self, record_type, domain):
 
         for record in dns_records:
-            if record["type"] == "A" and record["name"] == domain:
-                break
-        else:
-            raise CloudFlareError(f"Cannot find A record for {domain}")
+            if record["type"] == record_type and record["name"] == domain:
+                return zone["id"], record["id"]
 
-        return zone["id"], record["id"]
+        raise CloudFlareError(f"Cannot find {record_type} record for {domain}")
 
-    def update_A_record(self, ip, domain, zone_id, record_id):
-        click.echo(f'Updating "{domain}" A record.')
-        payload = {"name": domain, "type": "A", "content": str(ip)}
+    def update_record(self, record_type, ip, domain, zone_id, record_id):
+        assert record_type in "A", "AAAA"
+        click.echo(f'Updating "{domain}" {record_type} record.')
+        payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
+
+    def set_record(self, record_type, ip, domain, zone_id):
+        assert record_type in "A", "AAAA"
+        click.echo(f'Creating a new {record_type} record for "{domain}".')
+        payload = {"name": domain, "type": record_type, "content": str(ip)}
+        self._cf.zones.dns_records.post(zone_id, data=payload)
 
 
 def get_domains(domains, force, current_ip, cache, debug=False):
