@@ -165,6 +165,10 @@ class CloudFlareError(Exception):
     """We can't communicate with CloudFlare API as expected."""
 
 
+def get_record_type(ip: IPv4or6Address):
+    return "A" if ip.version == 4 else "AAAA"
+
+
 class CloudFlareClient:
     def __init__(self, api_token):
         self._cf = CloudFlare.CloudFlare(token=api_token)
@@ -205,13 +209,15 @@ class CloudFlareClient:
         record_id: Optional[str] = None,
     ):
         zone_id = zone_id or self.get_zone_id(domain)
+        record_type = get_record_type(ip)
         record_id = record_id or self.get_record_id(domain, record_type)
         click.echo(f'Updating "{domain}" {record_type} record.')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
-    def set_record(self, domain: str, ip: IPv4or6Address, record_type: str):
+    def set_record(self, domain: str, ip: IPv4or6Address):
         zone_id = self.get_zone_id(domain)
+        record_type = get_record_type(ip)
         click.echo(f'Creating a new {record_type} record for "{domain}".')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.post(zone_id, data=payload)
