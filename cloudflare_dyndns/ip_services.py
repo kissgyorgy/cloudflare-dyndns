@@ -1,6 +1,6 @@
 import os
 import ipaddress
-from typing import Callable
+from typing import Callable, List
 import attr
 import click
 import certifi
@@ -40,7 +40,7 @@ def parse_cloudflare_trace_ip(res: str):
             return ip
 
 
-def strip_whitespace(res):
+def strip_whitespace(res: str):
     """Strip whitespaces from the IP service response."""
     return res.strip()
 
@@ -69,7 +69,7 @@ IPV6_SERVICES = [
 ]
 
 
-def get_ip(ip_services):
+def get_ip(ip_services: List[IPService]):
     for ip_service in ip_services:
         click.echo(
             f"Checking current IP address with service: {ip_service.name} ({ip_service.url})"

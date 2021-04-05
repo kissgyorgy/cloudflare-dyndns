@@ -5,7 +5,7 @@ import click
 
 
 class RecordCache:
-    def __init__(self, cache_path: str, debug=False):
+    def __init__(self, cache_path: str, debug: bool = False):
         self._path = Path(cache_path).expanduser()
         self._path.parent.mkdir(exist_ok=True, parents=True)
         self._cache = self._make_default()
@@ -47,11 +47,11 @@ class RecordCache:
         self._cache["ip"] = ip
         self._cache["updated_domains"] = set()
 
-    def get_ids(self, domain):
+    def get_ids(self, domain: str):
         records = self._cache["zone_records"][domain]
         return records["zone_id"], records["record_id"]
 
-    def update_domain(self, domain, zone_id, record_id):
+    def update_domain(self, domain: str, zone_id: str, record_id: str):
         self._cache["zone_records"][domain] = {
             "zone_id": zone_id,
             "record_id": record_id,
