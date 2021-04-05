@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import os
 from typing import List, Optional
-from typing import Iterable
 import click
 import CloudFlare
 from .cache import RecordCache
@@ -36,7 +35,12 @@ def get_domains(
         return domains
 
 
-def update_domains(cf, domains, cache, current_ip):
+def update_domains(
+    cf: CloudFlareWrapper,
+    domains: List[str],
+    cache: RecordCache,
+    current_ip: IPv4or6Address,
+):
     success = True
     for domain in domains:
         try:
@@ -62,7 +66,7 @@ def update_domains(cf, domains, cache, current_ip):
 
 
 # workaround for: https://github.com/pallets/click/issues/729
-def parse_domains_args(domains: Iterable, domains_env: Optional[str]):
+def parse_domains_args(domains: List[str], domains_env: Optional[str]):
     if not domains and not domains_env:
         raise click.BadArgumentUsage(
             "You need to specify either domains argument or CLOUDFLARE_DOMAINS environment variable!"
@@ -114,7 +118,16 @@ def parse_domains_args(domains: Iterable, domains_env: Optional[str]):
     "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
 )
 @click.pass_context
-def main(ctx, domains, api_token, ipv4, ipv6, cache_file, force, debug):
+def main(
+    ctx: click.Context,
+    domains: List[str],
+    api_token: str,
+    ipv4: bool,
+    ipv6: bool,
+    cache_file: str,
+    force: bool,
+    debug: bool,
+):
     """A command line script to update CloudFlare DNS A and/or AAAA records
     based on the current IP address(es) of the machine running the script.
 
