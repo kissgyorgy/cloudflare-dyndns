@@ -1,3 +1,4 @@
+from cloudflare_dyndns.types import IPv4or6Address
 import os
 import ipaddress
 from typing import Callable, List
@@ -15,7 +16,12 @@ import requests
 
 
 class IPServiceError(Exception):
-    """Couldn't determine current IP address."""
+    """Raised when there is a problem during determining the IP Address
+    through the IP Services.
+    """
+
+    def __init__(self, msg: str):
+        super().__init__(msg)
 
 
 def parse_cloudflare_trace_ip(res: str):
@@ -70,10 +76,10 @@ IPV6_SERVICES = [
 ]
 
 
-def get_ip(ip_services: List[IPService]):
+def _get_ip(ip_services: List[IPService], version: str) -> IPv4or6Address:
     for ip_service in ip_services:
         click.echo(
-            f"Checking current IP address with service: {ip_service.name} ({ip_service.url})"
+            f"Checking current IPv{version} address with service: {ip_service.name} ({ip_service.url})"
         )
         try:
             res = requests.get(ip_service.url)
@@ -82,12 +88,46 @@ def get_ip(ip_services: List[IPService]):
             continue
 
         if not res.ok:
+            click.echo(f"Service returned error status: {res.status_code}, skipping.")
             continue
 
         ip_str = ip_service.response_parser(res.text)
-        ip = ipaddress.IPv4Address(ip_str)
+        try:
+            ip = ipaddress.ip_address(ip_str)
+        except ipaddress.AddressValueError:
+            click.secho(
+                f"Service returned invalid IP Address: {ip_str}, skipping.", fg="yellow"
+            )
+            continue
+
         click.echo(f"Current IP address: {ip}")
         return ip
 
     else:
-        raise IPServiceError
+        raise IPServiceError(
+            "Tried all IP Services, but couldn't determine current IP address."
+        )
+
+
+def get_ipv4(services: List[IPService] = IPV4_SERVICES):
+    ipv4 = _get_ip(services, "4")
+
+    if ipv4.version != 4:
+        raise IPServiceError(
+            "IP Service returned IPv6 address instead of IPv4.\n"
+            "There is a bug with the IP Service.",
+        )
+
+    return ipv4
+
+
+def get_ipv6(services: List[IPService] = IPV6_SERVICES):
+    ipv6 = _get_ip(services, "6")
+
+    if ipv6.version != 6:
+        raise IPServiceError(
+            "IP Service returned IPv4 address instead of IPv6.\n"
+            "You either don't have an IPv6 address, or there is a bug with the IP Service.",
+        )
+
+    return ipv6

@@ -1,5 +1,5 @@
+import ipaddress
 import pytest
-import requests
 from cloudflare_dyndns import ip_services as ips
 
 
@@ -20,13 +20,14 @@ warp=off
     assert ips.parse_cloudflare_trace_ip(trace_service_response) == "199.12.81.4"
 
 
+@pytest.mark.parametrize("service", ips.IPV4_SERVICES)
+def test_get_ipv4(service):
+    ip = ips.get_ipv4([service])
+    assert isinstance(ip, ipaddress.IPv4Address)
+
+
 @pytest.mark.ipv6
-@pytest.mark.parametrize(
-    "service_url", (s.url for s in ips.IPV4_SERVICES + ips.IPV6_SERVICES)
-)
-def test_services_available(service_url):
-    """This test hits all the services to check if they still work.
-    It is an integration test.
-    """
-    res = requests.get(service_url)
-    assert res.ok is True
+@pytest.mark.parametrize("service", ips.IPV6_SERVICES)
+def test_get_ipv6(service):
+    ip = ips.get_ipv6([service])
+    assert isinstance(ip, ipaddress.IPv6Address)
