@@ -7,12 +7,14 @@ import click
 class RecordCache:
     def __init__(self, cache_path: str, debug: bool = False):
         self._path = Path(cache_path).expanduser()
-        self._path.parent.mkdir(exist_ok=True, parents=True)
         self._cache = self._make_default()
         self._debug = debug
 
     def _make_default(self):
         return {"ip": None, "zone_records": {}, "updated_domains": set()}
+
+    def ensure_path(self):
+        self._path.parent.mkdir(exist_ok=True, parents=True)
 
     def load(self):
         click.echo(f"Loading cache from {self._path}")
