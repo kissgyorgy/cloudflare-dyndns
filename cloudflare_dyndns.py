@@ -301,6 +301,18 @@ def _parse_domains_args(domains: Iterable, domains_env: Optional[str]):
     ),
 )
 @click.option(
+    "-4/-no-4",
+    "ipv4",
+    help=("Turn on/off IPv4 detection and set A records.    [default: on]"),
+    default=True,
+)
+@click.option(
+    "-6/-no-6",
+    "ipv6",
+    help="Turn on/off IPv6 detection and set AAAA records. [default: off]",
+    default=False,
+)
+@click.option(
     "--cache-file",
     help="Cache file",
     type=click.Path(dir_okay=False, writable=True, readable=True),
@@ -312,9 +324,9 @@ def _parse_domains_args(domains: Iterable, domains_env: Optional[str]):
     "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
 )
 @click.pass_context
-def main(ctx, domains, api_token, cache_file, force, debug):
-    """A simple command line script to update CloudFlare DNS A records
-    with the current IP address of the machine running the script.
+def main(ctx, domains, api_token, ipv4, ipv6, cache_file, force, debug):
+    """A command line script to update CloudFlare DNS A and/or AAAA records
+    based on the current IP address(es) of the machine running the script.
 
     For the main domain (the "@" record), simply put "example.com" \b
     Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
@@ -322,6 +334,9 @@ def main(ctx, domains, api_token, cache_file, force, debug):
     You can set the list of domains to update in the CLOUDFLARE_DOMAINS
     environment variable, in which the domains has to be separated by
     whitespace, so don't forget to quote the value!
+
+    The script supports both IPv4 and IPv6 addresses. The default is to set only
+    A records for IPv4, which you can change with the relevant options.
     """
     domains_env = os.environ.get("CLOUDFLARE_DOMAINS")
     domains = _parse_domains_args(domains, domains_env)
