@@ -57,6 +57,7 @@ IPV4_SERVICES = [
         "CloudFlare trace", "https://1.1.1.1/cdn-cgi/trace", parse_cloudflare_trace_ip,
     ),
     IPService("AWS check ip", "https://checkip.amazonaws.com/",),
+    IPService("major.io icanhazip", "http://ipv4.icanhazip.com/"),
     IPService("Namecheap DynamicDNS", "https://dynamicdns.park-your-domain.com/getip",),
 ]
 
@@ -65,7 +66,7 @@ IPV6_SERVICES = [
     # These are always return IPv6 addresses first, when the machine has IPv6
     IPService("ip.tyk.nu", "https://ip.tyk.nu/"),
     IPService("wgetip.com", "https://wgetip.com/"),
-    IPService("WhatIs MyIPAddress", "https://bot.whatismyipaddress.com"),
+    IPService("major.io icanhazip", "http://ipv6.icanhazip.com/"),
 ]
 
 
