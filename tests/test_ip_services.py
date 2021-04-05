@@ -1,6 +1,6 @@
 import pytest
 import requests
-import cloudflare_dyndns as cfdns
+from cloudflare_dyndns import ip_services as ips
 
 
 def test_parse_cloudflare_trace_ip():
@@ -17,11 +17,11 @@ tls=TLSv1.3
 sni=off
 warp=off
 """
-    assert cfdns.parse_cloudflare_trace_ip(trace_service_response) == "199.12.81.4"
+    assert ips.parse_cloudflare_trace_ip(trace_service_response) == "199.12.81.4"
 
 
 @pytest.mark.parametrize(
-    "service_url", (s.url for s in cfdns.IPV4_SERVICES + cfdns.IPV6_SERVICES)
+    "service_url", (s.url for s in ips.IPV4_SERVICES + ips.IPV6_SERVICES)
 )
 def test_services_available(service_url):
     """This test hits all the services to check if they still work.

@@ -16,7 +16,7 @@ requests = "^2.22"
 attrs = "^20.3.0"
 
 [tool.poetry.scripts]
-cloudflare-dyndns = 'cloudflare_dyndns:main'
+cloudflare-dyndns = 'cloudflare_dyndns.cli:main'
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.1"
