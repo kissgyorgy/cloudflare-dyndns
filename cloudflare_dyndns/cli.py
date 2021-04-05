@@ -3,7 +3,7 @@ import os
 from typing import List, Optional
 import click
 import CloudFlare
-from .cache import RecordCache
+from .cache import RecordCache, InvalidCache
 from .cloudflare import CloudFlareError, CloudFlareWrapper
 from .types import IPv4or6Address
 from .ip_services import IPServiceError, get_ip, IPV4_SERVICES
@@ -155,7 +155,12 @@ def main(
 
     try:
         if not force:
-            cache.load()
+            try:
+                cache.load()
+            except InvalidCache:
+                click.secho("Invalid cache file, deleting", fg="yellow")
+                cache.delete()
+
         domains_to_update = get_domains(domains, force, current_ip, cache, debug)
         if not domains_to_update:
             return

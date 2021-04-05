@@ -25,8 +25,7 @@ class RecordCache:
             click.secho("Cache file not found")
             self._cache = self._make_default()
         except pickle.PickleError:
-            click.secho("Invalid cache file, deleting", fg="yellow")
-            self.delete()
+            raise InvalidCache
 
     def save(self):
         message = "Saving cache"
