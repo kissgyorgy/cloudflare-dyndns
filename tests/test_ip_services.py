@@ -20,6 +20,7 @@ warp=off
     assert ips.parse_cloudflare_trace_ip(trace_service_response) == "199.12.81.4"
 
 
+@pytest.mark.ipv6
 @pytest.mark.parametrize(
     "service_url", (s.url for s in ips.IPV4_SERVICES + ips.IPV6_SERVICES)
 )
