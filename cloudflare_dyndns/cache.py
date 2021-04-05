@@ -1,63 +1,75 @@
 from pathlib import Path
 import ipaddress
-import pickle
+from typing import Dict, List, Optional, Union
 import click
+from pydantic import BaseModel
+from .types import Domain
 
 
-class RecordCache:
-    def __init__(self, cache_path: str, debug: bool = False):
+class InvalidCache(Exception):
+    """Raised when we can't read the cache.
+    It's either corrupted, an older version or unreadable.
+    """
+
+
+class ZoneRecord(BaseModel):
+    zone_id: str
+    record_id: str
+
+
+class IPv4Cache(BaseModel):
+    address: ipaddress.IPv4Address
+    zone_records: Dict[Domain, ZoneRecord]
+    updated_domains: List[str]
+
+
+class IPv6Cache(BaseModel):
+    address: ipaddress.IPv6Address
+    zone_records: Dict[Domain, ZoneRecord]
+    updated_domains: List[str]
+
+
+class Cache(BaseModel):
+    ipv4: Optional[IPv4Cache] = None
+    ipv6: Optional[IPv6Cache] = None
+
+
+class CacheManager:
+    def __init__(self, cache_path: Union[str, Path], *, debug: bool = False):
         self._path = Path(cache_path).expanduser()
-        self._cache = self._make_default()
         self._debug = debug
 
-    def _make_default(self):
-        return {"ip": None, "zone_records": {}, "updated_domains": set()}
-
     def ensure_path(self):
+        if self._debug:
+            click.echo(f"Creating cache directory: {self._path}")
         self._path.parent.mkdir(exist_ok=True, parents=True)
 
-    def load(self):
-        click.echo(f"Loading cache from {self._path}")
+    def load(self) -> Cache:
+        click.echo(f"Loading cache from: {self._path}")
         try:
-            with self._path.open("rb") as fp:
-                self._cache = pickle.load(fp)
-                if self._debug:
-                    click.echo(f"Loaded cache: {self._cache}")
+            cache_json = self._path.read_text()
+            cache = Cache.parse_raw(cache_json)
         except FileNotFoundError:
-            click.secho("Cache file not found")
-            self._cache = self._make_default()
-        except pickle.PickleError:
+            click.echo(f"Cache file not found: {self._path}")
+            return Cache()
+        except Exception:
+            message = "Invalid cache file"
+            if self._debug:
+                message += ": {cache_json}"
+            click.secho(message, fg="yellow")
             raise InvalidCache
 
-    def save(self):
-        message = "Saving cache"
         if self._debug:
-            message += f": {self._cache}"
-        click.echo(message)
-        with self._path.open("wb") as fp:
-            pickle.dump(self._cache, fp)
+            click.echo(f"Loaded cache: {cache}")
+        return cache
+
+    def save(self, cache: Cache):
+        cache_json = cache.json()
+        if self._debug:
+            click.echo(f"Saving cache: {cache_json}")
+        click.echo(f"Saving cache to: {self._path}")
+        self._path.write_text(cache_json)
 
     def delete(self):
+        click.secho(f"Deleting cache at: {self._path}", fg="yellow")
         self._path.unlink(missing_ok=True)
-        self._cache = self._make_default()
-
-    def get_ip(self):
-        return self._cache["ip"]
-
-    def set_ip(self, ip: ipaddress.IPv4Address):
-        self._cache["ip"] = ip
-        self._cache["updated_domains"] = set()
-
-    def get_ids(self, domain: str):
-        records = self._cache["zone_records"][domain]
-        return records["zone_id"], records["record_id"]
-
-    def update_domain(self, domain: str, zone_id: str, record_id: str):
-        self._cache["zone_records"][domain] = {
-            "zone_id": zone_id,
-            "record_id": record_id,
-        }
-        self._cache["updated_domains"].add(domain)
-
-    def get_updated(self):
-        return self._cache["updated_domains"]
