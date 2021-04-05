@@ -151,6 +151,7 @@ def main(
         ctx.exit(1)
 
     cache = RecordCache(cache_file, debug)
+    cache.ensure_path()
     cf = CloudFlareWrapper(api_token)
 
     try:
