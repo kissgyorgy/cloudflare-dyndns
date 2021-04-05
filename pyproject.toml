@@ -9,11 +9,12 @@ repository = "https://github.com/kissgyorgy/cloudflare-dyndns"
 
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.1"
 click = "^7.0"
 cloudflare = "^2.3"
 requests = "^2.22"
 attrs = "^20.3.0"
+pydantic = "^1.8.1"
 
 [tool.poetry.scripts]
 cloudflare-dyndns = 'cloudflare_dyndns.cli:main'
