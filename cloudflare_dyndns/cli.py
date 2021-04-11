@@ -1,66 +1,68 @@
 #!/usr/bin/env python3
 import os
-from typing import List, Optional
+from typing import List, Optional, Union
+from pathlib import Path
 import click
 import CloudFlare
-from .cache import RecordCache, InvalidCache
+from .cache import CacheManager, Cache, IPCache, InvalidCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
-from .types import IPv4or6Address
-from .ip_services import IPServiceError, get_ip, IPV4_SERVICES
+from .types import IPv4or6Address, get_record_type
+from .ip_services import IPServiceError, get_ipv4, get_ipv6
 
 
 def get_domains(
-    domains: List[str], force: bool, current_ip: IPv4or6Address, cache: RecordCache,
+    domains: List[str], force: bool, current_ip: IPv4or6Address, ip_cache: IPCache,
 ):
     if force:
-        click.secho("Forced update, deleting cache.", fg="yellow")
-        cache.delete()
-        cache.set_ip(current_ip)
-        return domains
+        click.secho("Forced update", fg="yellow")
 
-    elif current_ip == cache.get_ip():
+    elif current_ip == ip_cache.address:
+        updated_domains = ", ".join(ip_cache.updated_domains)
         click.secho(
-            f"Domains with this IP address in cache: {', '.join(cache.get_updated())}",
-            fg="green",
+            f"Domains with this IP address in cache: {updated_domains}", fg="green",
         )
-        missing_domains = set(domains) - cache.get_updated()
+        missing_domains = set(domains) - set(ip_cache.updated_domains)
         if not missing_domains:
             click.secho("Every domain is up-to-date, quitting.", fg="green")
             return None
         else:
             return missing_domains
 
-    else:
-        cache.set_ip(current_ip)
-        return domains
+    ip_cache.address = current_ip
+    return domains
 
 
 def update_domains(
     cf: CloudFlareWrapper,
     domains: List[str],
-    cache: RecordCache,
+    ip_cache: IPCache,
     current_ip: IPv4or6Address,
 ):
     success = True
     for domain in domains:
         try:
-            zone_id, record_id = cache.get_ids(domain)
+            zone_record = ip_cache.updated_domains[domain]
+            zone_id = zone_record.zone_id
+            record_id = zone_record.record_id
         except KeyError:
             try:
-                zone_id, record_id = cf.get_records(domain)
-            except Exception:
+                zone_id = cf.get_zone_id(domain)
+                record_id = cf.get_record_id(domain, get_record_type(current_ip))
+                zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
+            except Exception as e:
                 click.secho(f'Failed to get domain records for "{domain}"', fg="red")
+                click.secho(str(e), fg="red")
                 success = False
                 continue
 
         try:
-            cf.update_A_record(current_ip, domain, zone_id, record_id)
+            cf.update_record(domain, current_ip, zone_id, record_id)
         except Exception:
             click.secho(f'Failed to update domain "{domain}"', fg="red")
             success = False
             continue
-        else:
-            cache.update_domain(domain, zone_id, record_id)
+
+        ip_cache.updated_domains[domain] = zone_record
 
     return success
 
@@ -81,6 +83,19 @@ def parse_domains_args(domains: List[str], domains_env: Optional[str]):
 
     click.echo("Domains to update: " + ", ".join(domains))
     return domains
+
+
+def load_cache(cache_file: Path, force: bool):
+    cache_manager = CacheManager(cache_file)
+    cache_manager.ensure_path()
+
+    if not force:
+        try:
+            return cache_manager, cache_manager.load()
+        except InvalidCache:
+            cache_manager.delete()
+
+    return cache_manager, Cache()
 
 
 @click.command()
@@ -144,45 +159,57 @@ def main(
     domains_env = os.environ.get("CLOUDFLARE_DOMAINS")
     domains = parse_domains_args(domains, domains_env)
 
-    try:
-        current_ip = get_ip(IPV4_SERVICES)
-    except IPServiceError:
-        click.secho(IPServiceError.__doc__, fg="red")
-        ctx.exit(1)
-
-    cache = RecordCache(cache_file, debug)
-    cache.ensure_path()
+    cache_manager, cache = load_cache(Path(cache_file), force)
     cf = CloudFlareWrapper(api_token)
 
-    try:
-        if not force:
-            try:
-                cache.load()
-            except InvalidCache:
-                click.secho("Invalid cache file, deleting", fg="yellow")
-                cache.delete()
+    exit_codes = set()
+    ip_methods = [(get_ipv4, cache.ipv4)] if ipv4 else []
+    ip_methods += [(get_ipv6, cache.ipv6)] if ipv6 else []
 
-        domains_to_update = get_domains(domains, force, current_ip, cache, debug)
+    for ip_func, ip_cache in ip_methods:
+        exit_code = handle_update(ip_func, cf, domains, force, ip_cache, debug)
+        exit_codes.add(exit_code)
+
+    cache_manager.save(cache)
+
+    # The smaller the exit code, the more specific the issue is
+    final_exit_code = min(exit_codes)
+    if final_exit_code != 0:
+        click.secho("There were some errors during update.", fg="yellow")
+        ctx.exit(final_exit_code)
+
+    click.secho("Done.", fg="green")
+
+
+def handle_update(get_ip_func, cf, domains, force, ip_cache, debug):
+    try:
+        current_ip = get_ip_func()
+    except IPServiceError as e:
+        click.secho(str(e), fg="red")
+        return 1
+
+    try:
+        domains_to_update = get_domains(domains, force, current_ip, ip_cache)
         if not domains_to_update:
-            return
-        success = update_domains(cf, domains_to_update, cache, current_ip)
-        cache.save()
+            return 0
+        success = update_domains(cf, domains_to_update, ip_cache, current_ip)
+
     except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
         click.secho(e, fg="red")
         if debug:
             raise
-        ctx.exit(2)
+        return 2
+
     except Exception as e:
         click.secho(f"Unknown error: {e}", fg="red")
         if debug:
             raise
-        ctx.exit(3)
+        return 3
 
     if not success:
-        click.secho("There were some errors during update.", fg="yellow")
-        ctx.exit(2)
+        return 2
 
-    click.secho("Done.", fg="green")
+    return 0
 
 
 if __name__ == "__main__":
