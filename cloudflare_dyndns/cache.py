@@ -1,9 +1,9 @@
 from pathlib import Path
 import ipaddress
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Set, Union
 import click
 from pydantic import BaseModel
-from .types import Domain
+from .types import Domain, IPv4or6Address
 
 
 class InvalidCache(Exception):
@@ -17,21 +17,14 @@ class ZoneRecord(BaseModel):
     record_id: str
 
 
-class IPv4Cache(BaseModel):
-    address: ipaddress.IPv4Address
-    zone_records: Dict[Domain, ZoneRecord]
-    updated_domains: List[str]
-
-
-class IPv6Cache(BaseModel):
-    address: ipaddress.IPv6Address
-    zone_records: Dict[Domain, ZoneRecord]
-    updated_domains: List[str]
+class IPCache(BaseModel):
+    address: Optional[IPv4or6Address] = None
+    updated_domains: Dict[Domain, ZoneRecord] = dict()
 
 
 class Cache(BaseModel):
-    ipv4: Optional[IPv4Cache] = None
-    ipv6: Optional[IPv6Cache] = None
+    ipv4 = IPCache()
+    ipv6 = IPCache()
 
 
 class CacheManager:
