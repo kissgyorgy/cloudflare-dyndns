@@ -10,4 +10,4 @@ Domain = NewType("Domain", str)
 
 
 def get_record_type(ip: IPv4or6Address) -> RecordType:
-    return A if ip.version == 4 else AAAA
+    return "A" if ip.version == 4 else "AAAA"
