@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir poetry
 
 COPY pyproject.toml poetry.lock /app/
 COPY README.md /app/
-COPY cloudflare_dyndns.py /app/
+COPY cloudflare_dyndns /app/cloudflare_dyndns
 RUN poetry install --no-dev
 
 ENTRYPOINT ["cloudflare-dyndns"]
