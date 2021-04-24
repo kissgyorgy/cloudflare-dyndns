@@ -177,13 +177,13 @@ def make_exe(dist):
     # python_config.write_modules_directory_env = "/tmp/oxidized/loaded_modules"
 
     # Evaluate a string as Python code when the interpreter starts.
-    # python_config.run_command = "<code>"
+    python_config.run_command = "from cloudflare_dyndns.cli import main; main()"
 
     # Run a Python module as __main__ when the interpreter starts.
-    # python_config.run_module = "cloudflare_dyndns"
+    # python_config.run_module = "cloudflare_dyndns.cli"
 
     # Run a Python file when the interpreter starts.
-    python_config.run_filename = "cloudflare_dyndns.py"
+    # python_config.run_filename = "cloudflare_dyndns/cli.py"
 
     # Produce a PythonExecutable from a Python distribution, embedded
     # resources, and other options. The returned object represents the
