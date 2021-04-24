@@ -43,7 +43,7 @@ class CacheManager:
             cache_json = self._path.read_text()
             cache = Cache.parse_raw(cache_json)
         except FileNotFoundError:
-            click.echo(f"Cache file not found: {self._path}")
+            click.echo(f"Cache file not found.")
             return Cache()
         except Exception:
             message = "Invalid cache file"
