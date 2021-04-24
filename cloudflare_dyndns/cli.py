@@ -159,6 +159,11 @@ def main(
     The script supports both IPv4 and IPv6 addresses. The default is to set only
     A records for IPv4, which you can change with the relevant options.
     """
+    if not ipv4 and not ipv6:
+        raise click.UsageError(
+            "You have to specify at least one IP mode; use -4 or -6.", ctx=ctx
+        )
+
     domains_env = os.environ.get("CLOUDFLARE_DOMAINS")
     domains = parse_domains_args(domains, domains_env)
 
