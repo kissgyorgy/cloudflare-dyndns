@@ -10,6 +10,10 @@ from .types import IPv4or6Address, get_record_type
 from .ip_services import IPServiceError, get_ipv4, get_ipv6
 
 
+cache_path = os.environ.get("XDG_CACHE_HOME", "~/.cache")
+XDG_CACHE_HOME = Path(cache_path).expanduser()
+
+
 def get_domains(
     domains: List[str], force: bool, current_ip: IPv4or6Address, ip_cache: IPCache,
 ):
@@ -128,7 +132,7 @@ def load_cache(cache_file: Path, force: bool):
     "--cache-file",
     help="Cache file",
     type=click.Path(dir_okay=False, writable=True, readable=True),
-    default="~/.cache/cloudflare-dynds/ip.cache",
+    default=XDG_CACHE_HOME / "cloudflare-dyndns" / "ip.cache",
     show_default=True,
 )
 @click.option("--force", is_flag=True, help="Delete cache and update every domain")
