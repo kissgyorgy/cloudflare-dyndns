@@ -14,16 +14,19 @@ def get_domains(
     domains: List[str], force: bool, current_ip: IPv4or6Address, ip_cache: IPCache,
 ):
     if force:
-        click.secho("Forced update", fg="yellow")
+        click.secho("Forced update, ignoring cache", fg="yellow")
 
     elif current_ip == ip_cache.address:
         updated_domains = ", ".join(ip_cache.updated_domains)
-        click.secho(
-            f"Domains with this IP address in cache: {updated_domains}", fg="green",
-        )
+        if updated_domains:
+            click.secho(
+                f"Domains with this IP address in cache: {updated_domains}", fg="green",
+            )
+        else:
+            click.echo("There are no domains with this IP address in cache.")
         missing_domains = set(domains) - set(ip_cache.updated_domains)
         if not missing_domains:
-            click.secho("Every domain is up-to-date, quitting.", fg="green")
+            click.secho(f"Every domain is up-to-date for {current_ip}.", fg="green")
             return None
         else:
             return missing_domains
@@ -170,7 +173,9 @@ def main(
         exit_code = handle_update(ip_func, cf, domains, force, ip_cache, debug)
         exit_codes.add(exit_code)
 
+    click.echo()
     cache_manager.save(cache)
+    click.echo()
 
     # The smaller the exit code, the more specific the issue is
     final_exit_code = min(exit_codes)
@@ -182,6 +187,7 @@ def main(
 
 
 def handle_update(get_ip_func, cf, domains, force, ip_cache, debug):
+    click.echo()
     try:
         current_ip = get_ip_func()
     except IPServiceError as e:
