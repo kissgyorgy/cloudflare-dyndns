@@ -177,13 +177,16 @@ def main(
     cache_manager.save(cache)
     click.echo()
 
+    exit_codes.remove(0)
+    if not exit_codes:
+        click.secho("Done.", fg="green")
+        return
+
     # The smaller the exit code, the more specific the issue is
     final_exit_code = min(exit_codes)
     if final_exit_code != 0:
         click.secho("There were some errors during update.", fg="yellow")
         ctx.exit(final_exit_code)
-
-    click.secho("Done.", fg="green")
 
 
 def handle_update(get_ip_func, cf, domains, force, ip_cache, debug):
