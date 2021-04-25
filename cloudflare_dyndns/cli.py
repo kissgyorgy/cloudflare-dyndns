@@ -54,12 +54,23 @@ def update_domains(
         except KeyError:
             try:
                 zone_id = cf.get_zone_id(domain)
-                record_id = cf.get_record_id(domain, get_record_type(current_ip))
-                zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
-            except Exception as e:
-                click.secho(f'Failed to get domain records for "{domain}"', fg="red")
+            except CloudFlareError as e:
+                click.secho(f'Failed to get zone record for "{domain}"', fg="red")
                 click.secho(str(e), fg="red")
                 success = False
+                continue
+
+            try:
+                record_id = cf.get_record_id(domain, get_record_type(current_ip))
+                zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
+            except CloudFlareError as e:
+                click.echo(f'Failed to get domain records for "{domain}"')
+                try:
+                    record_id = cf.create_record(domain, current_ip)
+                except CloudFlare.exceptions.CloudFlareAPIError as e:
+                    click.secho(f'Failed to create new record for "{domain}"', fg="red")
+                    click.secho(str(e), fg="reg")
+                    success = False
                 continue
 
         try:

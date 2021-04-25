@@ -39,6 +39,14 @@ class CloudFlareWrapper:
 
         raise CloudFlareError(f"Cannot find {record_type} record for {domain}")
 
+    def create_record(self, domain: str, ip: IPv4or6Address) -> str:
+        zone_id = self.get_zone_id(domain)
+        record_type = get_record_type(ip)
+        click.echo(f'Creating a new {record_type} record for "{domain}".')
+        payload = {"name": domain, "type": record_type, "content": str(ip), "ttl": 1}
+        record = self._cf.zones.dns_records.post(zone_id, data=payload)
+        return record["id"]
+
     def update_record(
         self,
         domain: str,
@@ -52,13 +60,6 @@ class CloudFlareWrapper:
         click.echo(f'Updating "{domain}" {record_type} record.')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
-
-    def set_record(self, domain: str, ip: IPv4or6Address):
-        zone_id = self.get_zone_id(domain)
-        record_type = get_record_type(ip)
-        click.echo(f'Creating a new {record_type} record for "{domain}".')
-        payload = {"name": domain, "type": record_type, "content": str(ip)}
-        self._cf.zones.dns_records.post(zone_id, data=payload)
 
     def delete_record(self, domain: str, record_type: RecordType):
         click.secho(f'Deleting {record_type} record for "{domain}".', fg="yellow")
