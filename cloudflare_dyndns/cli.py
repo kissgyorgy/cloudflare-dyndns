@@ -64,8 +64,9 @@ def update_domains(
 
         try:
             cf.update_record(domain, current_ip, zone_id, record_id)
-        except Exception:
+        except Exception as e:
             click.secho(f'Failed to update domain "{domain}"', fg="red")
+            click.secho(str(e), fg="red")
             success = False
             continue
 
