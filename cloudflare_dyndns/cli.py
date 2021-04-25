@@ -8,6 +8,7 @@ from .cache import CacheManager, Cache, IPCache, InvalidCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
 from .types import IPv4or6Address, RecordType, get_record_type
 from .ip_services import IPServiceError, get_ipv4, get_ipv6
+from . import printer
 
 
 cache_path = os.environ.get("XDG_CACHE_HOME", "~/.cache")
@@ -18,19 +19,17 @@ def get_domains(
     domains: List[str], force: bool, current_ip: IPv4or6Address, ip_cache: IPCache,
 ):
     if force:
-        click.secho("Forced update, ignoring cache", fg="yellow")
+        printer.warning("Forced update, ignoring cache")
 
     elif current_ip == ip_cache.address:
         updated_domains = ", ".join(ip_cache.updated_domains)
         if updated_domains:
-            click.secho(
-                f"Domains with this IP address in cache: {updated_domains}", fg="green",
-            )
+            printer.success(f"Domains with this IP address in cache: {updated_domains}")
         else:
-            click.echo("There are no domains with this IP address in cache.")
+            printer.info("There are no domains with this IP address in cache.")
         missing_domains = set(domains) - set(ip_cache.updated_domains)
         if not missing_domains:
-            click.secho(f"Every domain is up-to-date for {current_ip}.", fg="green")
+            printer.success(f"Every domain is up-to-date for {current_ip}.")
             return None
         else:
             return missing_domains
@@ -55,8 +54,7 @@ def update_domains(
             try:
                 zone_id = cf.get_zone_id(domain)
             except CloudFlareError as e:
-                click.secho(f'Failed to get zone record for "{domain}"', fg="red")
-                click.secho(str(e), fg="red")
+                printer.error(f'Failed to get zone record for "{domain}"\n{e}')
                 success = False
                 continue
 
@@ -64,20 +62,18 @@ def update_domains(
                 record_id = cf.get_record_id(domain, get_record_type(current_ip))
                 zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
             except CloudFlareError as e:
-                click.echo(f'Failed to get domain records for "{domain}"')
+                printer.info(f'Failed to get domain records for "{domain}"')
                 try:
                     record_id = cf.create_record(domain, current_ip)
                 except CloudFlare.exceptions.CloudFlareAPIError as e:
-                    click.secho(f'Failed to create new record for "{domain}"', fg="red")
-                    click.secho(str(e), fg="reg")
+                    printer.error(f'Failed to create new record for "{domain}"\n{e}')
                     success = False
                 continue
 
         try:
             cf.update_record(domain, current_ip, zone_id, record_id)
         except Exception as e:
-            click.secho(f'Failed to update domain "{domain}"', fg="red")
-            click.secho(str(e), fg="red")
+            printer.error(f'Failed to update domain "{domain}"\n{e}')
             success = False
             continue
 
@@ -100,7 +96,7 @@ def parse_domains_args(domains: List[str], domains_env: Optional[str]):
         # same method as in click.ParamType.split_envvar_value, which was the default before
         domains = (domains_env or "").split()
 
-    click.echo("Domains to update: " + ", ".join(domains))
+    printer.info("Domains to update: " + ", ".join(domains))
     return domains
 
 
@@ -211,13 +207,13 @@ def main(
 
     exit_codes.remove(0)
     if not exit_codes:
-        click.secho("Done.", fg="green")
+        printer.success("Done.")
         return
 
     # The smaller the exit code, the more specific the issue is
     final_exit_code = min(exit_codes)
     if final_exit_code != 0:
-        click.secho("There were some errors during update.", fg="yellow")
+        printer.warning("There were some errors during update.")
         ctx.exit(final_exit_code)
 
 
@@ -236,7 +232,7 @@ def handle_update(
     try:
         current_ip = get_ip_func()
     except IPServiceError as e:
-        click.secho(str(e), fg="red")
+        printer.error(str(e))
         if delete_missing:
             for domain in domains:
                 cf.delete_record(domain, record_type)
@@ -254,13 +250,13 @@ def handle_update(
         success = update_domains(cf, domains_to_update, ip_cache, current_ip)
 
     except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
-        click.secho(e, fg="red")
+        printer.error(str(e))
         if debug:
             raise
         return 2
 
     except Exception as e:
-        click.secho(f"Unknown error: {e}", fg="red")
+        printer.error(f"Unknown error: {e}")
         if debug:
             raise
         return 3

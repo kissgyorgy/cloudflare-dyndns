@@ -1,8 +1,8 @@
 import functools
 from typing import Optional
-import click
 import CloudFlare
 from .types import IPv4or6Address, RecordType, get_record_type
+from . import printer
 
 
 class CloudFlareError(Exception):
@@ -42,7 +42,7 @@ class CloudFlareWrapper:
     def create_record(self, domain: str, ip: IPv4or6Address) -> str:
         zone_id = self.get_zone_id(domain)
         record_type = get_record_type(ip)
-        click.echo(f'Creating a new {record_type} record for "{domain}".')
+        printer.info(f'Creating a new {record_type} record for "{domain}".')
         payload = {"name": domain, "type": record_type, "content": str(ip), "ttl": 1}
         record = self._cf.zones.dns_records.post(zone_id, data=payload)
         return record["id"]
@@ -57,16 +57,16 @@ class CloudFlareWrapper:
         zone_id = zone_id or self.get_zone_id(domain)
         record_type = get_record_type(ip)
         record_id = record_id or self.get_record_id(domain, record_type)
-        click.echo(f'Updating "{domain}" {record_type} record.')
+        printer.info(f'Updating "{domain}" {record_type} record.')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
 
     def delete_record(self, domain: str, record_type: RecordType):
-        click.secho(f'Deleting {record_type} record for "{domain}".', fg="yellow")
+        printer.warning(f'Deleting {record_type} record for "{domain}".')
         zone_id = self.get_zone_id(domain)
         try:
             record_id = self.get_record_id(domain, record_type)
         except CloudFlareError:
-            click.echo(f'{record_type} record for "{domain}" doesn\'t exist.')
+            printer.info(f'{record_type} record for "{domain}" doesn\'t exist.')
             return
         self._cf.zones.dns_records.delete(zone_id, record_id)

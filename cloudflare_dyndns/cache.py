@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Dict, Optional, Union
-import click
 from pydantic import BaseModel
 from .types import Domain, IPv4or6Address
+from . import printer
 
 
 class InvalidCache(Exception):
@@ -37,35 +37,35 @@ class CacheManager:
 
     def ensure_path(self):
         if self._debug:
-            click.echo(f"Creating cache directory: {self._path}")
+            printer.info(f"Creating cache directory: {self._path}")
         self._path.parent.mkdir(exist_ok=True, parents=True)
 
     def load(self) -> Cache:
-        click.echo(f"Loading cache from: {self._path}")
+        printer.info(f"Loading cache from: {self._path}")
         try:
             cache_json = self._path.read_text()
             cache = Cache.parse_raw(cache_json)
         except FileNotFoundError:
-            click.echo(f"Cache file not found.")
+            printer.info(f"Cache file not found.")
             return Cache()
         except Exception:
             message = "Invalid cache file"
             if self._debug:
                 message += ": {cache_json}"
-            click.secho(message, fg="yellow")
+            printer.warning(message)
             raise InvalidCache
 
         if self._debug:
-            click.echo(f"Loaded cache: {cache}")
+            printer.info(f"Loaded cache: {cache}")
         return cache
 
     def save(self, cache: Cache):
         cache_json = cache.json()
         if self._debug:
-            click.echo(f"Saving cache: {cache_json}")
-        click.echo(f"Saving cache to: {self._path}")
+            printer.info(f"Saving cache: {cache_json}")
+        printer.info(f"Saving cache to: {self._path}")
         self._path.write_text(cache_json)
 
     def delete(self):
-        click.secho(f"Deleting cache at: {self._path}", fg="yellow")
+        printer.warning(f"Deleting cache at: {self._path}")
         self._path.unlink(missing_ok=True)

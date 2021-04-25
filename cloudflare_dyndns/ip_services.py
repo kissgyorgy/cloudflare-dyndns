@@ -3,8 +3,9 @@ import os
 import ipaddress
 from typing import Callable, List
 import attr
-import click
 import certifi
+from . import printer
+
 
 # Workaround for certifi resource location doesn't work with PyOxidizer.
 # See: https://github.com/psf/requests/blob/v2.23.0/requests/utils.py#L40
@@ -78,29 +79,27 @@ IPV6_SERVICES = [
 
 def _get_ip(ip_services: List[IPService], version: str) -> IPv4or6Address:
     for ip_service in ip_services:
-        click.echo(
+        printer.info(
             f"Checking current IPv{version} address with service: {ip_service.name} ({ip_service.url})"
         )
         try:
             res = requests.get(ip_service.url)
         except requests.exceptions.RequestException:
-            click.echo(f"Service {ip_service.url} unreachable, skipping.")
+            printer.info(f"Service {ip_service.url} unreachable, skipping.")
             continue
 
         if not res.ok:
-            click.echo(f"Service returned error status: {res.status_code}, skipping.")
+            printer.info(f"Service returned error status: {res.status_code}, skipping.")
             continue
 
         ip_str = ip_service.response_parser(res.text)
         try:
             ip = ipaddress.ip_address(ip_str)
         except ipaddress.AddressValueError:
-            click.secho(
-                f"Service returned invalid IP Address: {ip_str}, skipping.", fg="yellow"
-            )
+            printer.warning(f"Service returned invalid IP Address: {ip_str}, skipping.")
             continue
 
-        click.echo(f"Current IP address: {ip}")
+        printer.info(f"Current IP address: {ip}")
         return ip
 
     else:
