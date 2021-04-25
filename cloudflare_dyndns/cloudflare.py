@@ -59,3 +59,13 @@ class CloudFlareWrapper:
         click.echo(f'Creating a new {record_type} record for "{domain}".')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
         self._cf.zones.dns_records.post(zone_id, data=payload)
+
+    def delete_record(self, domain: str, record_type: RecordType):
+        click.secho(f'Deleting {record_type} record for "{domain}".', fg="yellow")
+        zone_id = self.get_zone_id(domain)
+        try:
+            record_id = self.get_record_id(domain, record_type)
+        except CloudFlareError:
+            click.echo(f'{record_type} record for "{domain}" doesn\'t exist.')
+            return
+        self._cf.zones.dns_records.delete(zone_id, record_id)

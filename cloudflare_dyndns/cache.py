@@ -20,6 +20,10 @@ class IPCache(BaseModel):
     address: Optional[IPv4or6Address] = None
     updated_domains: Dict[Domain, ZoneRecord] = dict()
 
+    def clear(self):
+        self.address = None
+        self.updated_domains = dict()
+
 
 class Cache(BaseModel):
     ipv4 = IPCache()

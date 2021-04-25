@@ -6,7 +6,7 @@ import click
 import CloudFlare
 from .cache import CacheManager, Cache, IPCache, InvalidCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
-from .types import IPv4or6Address, get_record_type
+from .types import IPv4or6Address, RecordType, get_record_type
 from .ip_services import IPServiceError, get_ipv4, get_ipv6
 
 
@@ -129,6 +129,14 @@ def load_cache(cache_file: Path, force: bool):
     default=False,
 )
 @click.option(
+    "--delete-missing",
+    is_flag=True,
+    help=(
+        "Delete DNS record when no IP address found. "
+        "Delete A record when IPv4 is missing, AAAA record when IPv6 is missing."
+    ),
+)
+@click.option(
     "--cache-file",
     help="Cache file",
     type=click.Path(dir_okay=False, writable=True, readable=True),
@@ -146,6 +154,7 @@ def main(
     api_token: str,
     ipv4: bool,
     ipv6: bool,
+    delete_missing: bool,
     cache_file: str,
     force: bool,
     debug: bool,
@@ -175,11 +184,13 @@ def main(
     cf = CloudFlareWrapper(api_token)
 
     exit_codes = set()
-    ip_methods = [(get_ipv4, cache.ipv4)] if ipv4 else []
-    ip_methods += [(get_ipv6, cache.ipv6)] if ipv6 else []
+    ip_methods = [(get_ipv4, cache.ipv4, "A")] if ipv4 else []
+    ip_methods += [(get_ipv6, cache.ipv6, "AAAA")] if ipv6 else []
 
-    for ip_func, ip_cache in ip_methods:
-        exit_code = handle_update(ip_func, cf, domains, force, ip_cache, debug)
+    for ip_func, ip_cache, record_type in ip_methods:
+        exit_code = handle_update(
+            ip_func, delete_missing, record_type, cf, domains, force, ip_cache, debug
+        )
         exit_codes.add(exit_code)
 
     click.echo()
@@ -200,6 +211,8 @@ def main(
 
 def handle_update(
     get_ip_func: Callable,
+    delete_missing: bool,
+    record_type: RecordType,
     cf: CloudFlareWrapper,
     domains: List[str],
     force: bool,
@@ -212,6 +225,14 @@ def handle_update(
         current_ip = get_ip_func()
     except IPServiceError as e:
         click.secho(str(e), fg="red")
+        if delete_missing:
+            for domain in domains:
+                cf.delete_record(domain, record_type)
+            ip_cache.clear()
+            # when the --delete-missing flag is specified, this is the expected behavior
+            # so there should be no error reported
+            return 0
+
         return 1
 
     try:
