@@ -24,7 +24,7 @@ class IPServiceError(Exception):
         super().__init__(msg)
 
 
-def parse_cloudflare_trace_ip(res: str):
+def parse_cloudflare_trace_ip(res: str) -> str:
     """Parses the IP address line from the cloudflare trace service response.
     Example response:
         fl=114f30
@@ -46,7 +46,7 @@ def parse_cloudflare_trace_ip(res: str):
             return ip
 
 
-def strip_whitespace(res: str):
+def strip_whitespace(res: str) -> str:
     """Strip whitespaces from the IP service response."""
     return res.strip()
 
@@ -109,7 +109,7 @@ def _get_ip(ip_services: List[IPService], version: str) -> IPv4or6Address:
         )
 
 
-def get_ipv4(services: List[IPService] = IPV4_SERVICES):
+def get_ipv4(services: List[IPService] = IPV4_SERVICES) -> ipaddress.IPv4Address:
     ipv4 = _get_ip(services, "4")
 
     if ipv4.version != 4:
@@ -121,7 +121,7 @@ def get_ipv4(services: List[IPService] = IPV4_SERVICES):
     return ipv4
 
 
-def get_ipv6(services: List[IPService] = IPV6_SERVICES):
+def get_ipv6(services: List[IPService] = IPV6_SERVICES) -> ipaddress.IPv6Address:
     ipv6 = _get_ip(services, "6")
 
     if ipv6.version != 6:

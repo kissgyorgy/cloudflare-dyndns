@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 from pathlib import Path
 import click
 import CloudFlare
@@ -198,7 +198,15 @@ def main(
         ctx.exit(final_exit_code)
 
 
-def handle_update(get_ip_func, cf, domains, force, ip_cache, debug):
+def handle_update(
+    get_ip_func: Callable,
+    cf: CloudFlareWrapper,
+    domains: List[str],
+    force: bool,
+    ip_cache: IPCache,
+    debug: bool,
+):
+
     click.echo()
     try:
         current_ip = get_ip_func()

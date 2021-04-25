@@ -10,11 +10,11 @@ class CloudFlareError(Exception):
 
 
 class CloudFlareWrapper:
-    def __init__(self, api_token):
+    def __init__(self, api_token: str):
         self._cf = CloudFlare.CloudFlare(token=api_token)
 
     @functools.lru_cache
-    def get_zone_id(self, domain: str):
+    def get_zone_id(self, domain: str) -> str:
         without_subdomains = ".".join(domain.rsplit(".")[-2:])
         zone_list = self._cf.zones.get(params={"name": without_subdomains})
 
@@ -27,12 +27,12 @@ class CloudFlareWrapper:
         return zone["id"]
 
     @functools.lru_cache
-    def _get_records(self, domain: str):
+    def _get_records(self, domain: str) -> dict:
         zone_id = self.get_zone_id(domain)
         return self._cf.zones.dns_records.get(zone_id, params={"name": domain})
 
     @functools.lru_cache
-    def get_record_id(self, domain: str, record_type: RecordType):
+    def get_record_id(self, domain: str, record_type: RecordType) -> str:
         for record in self._get_records(domain):
             if record["type"] == record_type and record["name"] == domain:
                 return record["id"]

@@ -1,6 +1,5 @@
 from pathlib import Path
-import ipaddress
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, Optional, Union
 import click
 from pydantic import BaseModel
 from .types import Domain, IPv4or6Address
