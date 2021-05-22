@@ -44,8 +44,8 @@ behavior, but if you have a different use case,
 $ cloudflare-dyndns --help
 Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]...
 
-  A simple command line script to update CloudFlare DNS A records with the
-  current IP address of the machine running the script.
+  A command line script to update CloudFlare DNS A and/or AAAA records based
+  on the current IP address(es) of the machine running the script.
 
   For the main domain (the "@" record), simply put "example.com"
   Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
@@ -54,18 +54,39 @@ Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]...
   environment variable, in which the domains has to be separated by
   whitespace, so don't forget to quote the value!
 
+  The script supports both IPv4 and IPv6 addresses. The default is to set
+  only A records for IPv4, which you can change with the relevant options.
+
 Options:
   --api-token TEXT   CloudFlare API Token (You can create one at My Profile
                      page / API Tokens tab). Can be set with
                      CLOUDFLARE_API_TOKEN environment variable.  [required]
 
-  --cache-file FILE  Cache file  [default: ~/.cache/cloudflare-dynds/ip.cache]
+  -4 / -no-4         Turn on/off IPv4 detection and set A records.
+                     [default: on]
+
+  -6 / -no-6         Turn on/off IPv6 detection and set AAAA records.
+                     [default: off]
+
+  --delete-missing   Delete DNS record when no IP address found. Delete A
+                     record when IPv4 is missing, AAAA record when IPv6 is
+                     missing.
+
+  --cache-file FILE  Cache file  [default: /home/walkman/.cache/cloudflare-
+                     dyndns/ip.cache]
+
   --force            Delete cache and update every domain
   --debug            More verbose messages and Exception tracebacks
   --help             Show this message and exit.
 ```
 
 # Changelog
+
+- **v4.0** IPv6 support
+
+  Now you can specify `-6` command line option to update AAAA records too.
+  You can delete records for missing IP addresses with the `--delete-missing`˙
+  option. See #6 for details.
 
 - **v3.0** breaks backward compatibility using the global API Key
 
