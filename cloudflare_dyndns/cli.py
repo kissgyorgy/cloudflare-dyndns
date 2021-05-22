@@ -51,7 +51,6 @@ def update_domains(
             try:
                 zone_id = cf.get_zone_id(domain)
             except CloudFlareError as e:
-                printer.error(f'Failed to get zone record for "{domain}"\n{e}')
                 success = False
                 continue
 
@@ -59,18 +58,15 @@ def update_domains(
                 record_id = cf.get_record_id(domain, get_record_type(current_ip))
                 zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
             except CloudFlareError as e:
-                printer.info(f'Failed to get domain records for "{domain}"')
                 try:
                     record_id = cf.create_record(domain, current_ip)
                 except CloudFlare.exceptions.CloudFlareAPIError as e:
-                    printer.error(f'Failed to create new record for "{domain}"\n{e}')
                     success = False
                 continue
 
         try:
             cf.update_record(domain, current_ip, zone_id, record_id)
         except Exception as e:
-            printer.error(f'Failed to update domain "{domain}"\n{e}')
             success = False
             continue
 

@@ -22,7 +22,8 @@ class CloudFlareWrapper:
         try:
             zone = zone_list[0]
         except IndexError:
-            raise CloudFlareError(f'Cannot find domain "{domain}" at CloudFlare')
+            printer.error(f'Cannot find domain "{domain}" at CloudFlare')
+            raise CloudFlareError
 
         return zone["id"]
 
@@ -37,6 +38,8 @@ class CloudFlareWrapper:
             if record["type"] == record_type and record["name"] == domain:
                 return record["id"]
 
+        # This is not a fatal error yet
+        printer.info(f'Failed to get domain records for "{domain}"')
         raise CloudFlareError(f"Cannot find {record_type} record for {domain}")
 
     def create_record(self, domain: str, ip: IPAddress) -> str:
@@ -44,7 +47,11 @@ class CloudFlareWrapper:
         record_type = get_record_type(ip)
         printer.info(f'Creating a new {record_type} record for "{domain}".')
         payload = {"name": domain, "type": record_type, "content": str(ip), "ttl": 1}
-        record = self._cf.zones.dns_records.post(zone_id, data=payload)
+        try:
+            record = self._cf.zones.dns_records.post(zone_id, data=payload)
+        except Exception as e:
+            printer.error(f'Failed to create new record for "{domain}": {e}')
+            raise
         return record["id"]
 
     def update_record(
@@ -59,7 +66,11 @@ class CloudFlareWrapper:
         record_id = record_id or self.get_record_id(domain, record_type)
         printer.info(f'Updating "{domain}" {record_type} record.')
         payload = {"name": domain, "type": record_type, "content": str(ip)}
-        self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
+        try:
+            self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
+        except Exception as e:
+            printer.error(f'Failed to update domain "{domain}": {e}')
+            raise
 
     def delete_record(self, domain: str, record_type: RecordType):
         printer.warning(f'Deleting {record_type} record for "{domain}".')
