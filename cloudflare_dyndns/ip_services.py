@@ -1,4 +1,4 @@
-from cloudflare_dyndns.types import IPv4or6Address
+from cloudflare_dyndns.types import IPAddress
 import os
 import ipaddress
 from typing import Callable, List
@@ -77,7 +77,7 @@ IPV6_SERVICES = [
 ]
 
 
-def _get_ip(ip_services: List[IPService], version: str) -> IPv4or6Address:
+def _get_ip(ip_services: List[IPService], version: str) -> IPAddress:
     for ip_service in ip_services:
         printer.info(
             f"Checking current IPv{version} address with service: {ip_service.name} ({ip_service.url})"

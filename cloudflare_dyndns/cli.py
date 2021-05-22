@@ -6,7 +6,7 @@ import click
 import CloudFlare
 from .cache import CacheManager, Cache, IPCache, InvalidCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
-from .types import IPv4or6Address, RecordType, get_record_type
+from .types import IPAddress, RecordType, get_record_type
 from .ip_services import IPServiceError, get_ipv4, get_ipv6
 from . import printer
 
@@ -16,7 +16,7 @@ XDG_CACHE_HOME = Path(cache_path).expanduser()
 
 
 def get_domains(
-    domains: List[str], force: bool, current_ip: IPv4or6Address, ip_cache: IPCache,
+    domains: List[str], force: bool, current_ip: IPAddress, ip_cache: IPCache,
 ):
     if force:
         printer.warning("Forced update, ignoring cache")
@@ -39,10 +39,7 @@ def get_domains(
 
 
 def update_domains(
-    cf: CloudFlareWrapper,
-    domains: List[str],
-    ip_cache: IPCache,
-    current_ip: IPv4or6Address,
+    cf: CloudFlareWrapper, domains: List[str], ip_cache: IPCache, current_ip: IPAddress,
 ):
     success = True
     for domain in domains:

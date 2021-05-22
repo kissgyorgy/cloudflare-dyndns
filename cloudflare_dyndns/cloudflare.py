@@ -1,7 +1,7 @@
 import functools
 from typing import Optional
 import CloudFlare
-from .types import IPv4or6Address, RecordType, get_record_type
+from .types import IPAddress, RecordType, get_record_type
 from . import printer
 
 
@@ -39,7 +39,7 @@ class CloudFlareWrapper:
 
         raise CloudFlareError(f"Cannot find {record_type} record for {domain}")
 
-    def create_record(self, domain: str, ip: IPv4or6Address) -> str:
+    def create_record(self, domain: str, ip: IPAddress) -> str:
         zone_id = self.get_zone_id(domain)
         record_type = get_record_type(ip)
         printer.info(f'Creating a new {record_type} record for "{domain}".')
@@ -50,7 +50,7 @@ class CloudFlareWrapper:
     def update_record(
         self,
         domain: str,
-        ip: IPv4or6Address,
+        ip: IPAddress,
         zone_id: Optional[str] = None,
         record_id: Optional[str] = None,
     ):

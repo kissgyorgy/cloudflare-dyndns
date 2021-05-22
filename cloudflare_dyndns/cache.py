@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Dict, Optional, Union
 from pydantic import BaseModel
-from .types import Domain, IPv4or6Address
+from .types import Domain, IPAddress
 from . import printer
 
 
@@ -17,7 +17,7 @@ class ZoneRecord(BaseModel):
 
 
 class IPCache(BaseModel):
-    address: Optional[IPv4or6Address] = None
+    address: Optional[IPAddress] = None
     updated_domains: Dict[Domain, ZoneRecord] = dict()
 
     def clear(self):
