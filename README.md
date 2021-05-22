@@ -25,6 +25,19 @@ Or you can use [the Docker image](https://hub.docker.com/repository/docker/kissg
 $ docker run --rm -it kissgyorgy/cloudflare-dyndns --help
 ```
 
+# Note
+
+If you use this script, it "takes over" the handling of the record of those
+domains you specified, which means it will update existing records and create
+missing ones.
+
+You should not change A or AAAA records manually or with other scripts, because
+the changes will be overwritten.
+
+I decided to make it work this way, because I think most users expect this
+behavior, but if you have a different use case,
+[let me know!](https://github.com/kissgyorgy/cloudflare-dyndns/issues/new)
+
 ## Command line interface
 
 ```

@@ -42,34 +42,47 @@ def update_domains(
     cf: CloudFlareWrapper, domains: List[str], ip_cache: IPCache, current_ip: IPAddress,
 ):
     success = True
+
     for domain in domains:
-        try:
-            zone_record = ip_cache.updated_domains[domain]
-            zone_id = zone_record.zone_id
-            record_id = zone_record.record_id
-        except KeyError:
+        get_record_failed = False
+        update_record_failed = False
+
+        cache_record = ip_cache.updated_domains.get(domain)
+
+        if cache_record is not None:
+            zone_id = cache_record.zone_id
+            record_id = cache_record.record_id
+            try:
+                cf.update_record(domain, current_ip, zone_id, record_id)
+            except CloudFlare.exceptions.CloudFlareAPIError:
+                printer.error("Invalid cache, deleting")
+                del ip_cache.updated_domains[domain]
+                update_record_failed = True
+
+        if cache_record is None or update_record_failed:
             try:
                 zone_id = cf.get_zone_id(domain)
-            except CloudFlareError as e:
+            except CloudFlareError:
+                # TODO: try to create zone?
                 success = False
                 continue
 
             try:
                 record_id = cf.get_record_id(domain, get_record_type(current_ip))
-                zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
-            except CloudFlareError as e:
+            except CloudFlareError:
                 try:
                     record_id = cf.create_record(domain, current_ip)
-                except CloudFlare.exceptions.CloudFlareAPIError as e:
+                except CloudFlare.exceptions.CloudFlareAPIError:
                     success = False
-                continue
+                    continue
+            else:
+                try:
+                    cf.update_record(domain, current_ip, zone_id, record_id)
+                except CloudFlare.exceptions.CloudFlareAPIError:
+                    success = False
+                    continue
 
-        try:
-            cf.update_record(domain, current_ip, zone_id, record_id)
-        except Exception as e:
-            success = False
-            continue
-
+        zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
         ip_cache.updated_domains[domain] = zone_record
 
     return success
