@@ -14,6 +14,7 @@ class InvalidCache(Exception):
 class ZoneRecord(BaseModel):
     zone_id: str
     record_id: str
+    proxied: bool = False
 
 
 class IPCache(BaseModel):

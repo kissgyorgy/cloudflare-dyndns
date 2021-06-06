@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Iterable
 from pathlib import Path
 import click
 import CloudFlare
@@ -16,18 +16,29 @@ XDG_CACHE_HOME = Path(cache_path).expanduser()
 
 
 def get_domains(
-    domains: List[str], force: bool, current_ip: IPAddress, ip_cache: IPCache,
+    domains: List[str],
+    force: bool,
+    current_ip: IPAddress,
+    ip_cache: IPCache,
+    proxied: bool,
 ):
     if force:
         printer.warning("Forced update, ignoring cache")
 
     elif current_ip == ip_cache.address:
-        updated_domains = ", ".join(ip_cache.updated_domains)
+        updated_domains = {
+            d
+            for d, zone_record in ip_cache.updated_domains.items()
+            if zone_record.proxied is proxied
+        }
+
+        updated_domains_list = ", ".join(updated_domains)
         if updated_domains:
-            printer.success(f"Domains with this IP address in cache: {updated_domains}")
+            printer.success(f"Domains with this IP address in cache: {updated_domains_list}")
         else:
             printer.info("There are no domains with this IP address in cache.")
-        missing_domains = set(domains) - set(ip_cache.updated_domains)
+
+        missing_domains = set(domains) - updated_domains
         if not missing_domains:
             printer.success(f"Every domain is up-to-date for {current_ip}.")
             return None
@@ -43,6 +54,7 @@ def update_domains(
     domains: Iterable[str],
     ip_cache: IPCache,
     current_ip: IPAddress,
+    proxied: bool,
 ):
     success = True
 
@@ -55,7 +67,7 @@ def update_domains(
             zone_id = cache_record.zone_id
             record_id = cache_record.record_id
             try:
-                cf.update_record(domain, current_ip, zone_id, record_id)
+                cf.update_record(domain, current_ip, zone_id, record_id, proxied)
             except CloudFlare.exceptions.CloudFlareAPIError:
                 printer.error("Invalid cache, deleting")
                 del ip_cache.updated_domains[domain]
@@ -84,7 +96,7 @@ def update_domains(
                     success = False
                     continue
 
-        zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id)
+        zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id, proxied=proxied)
         ip_cache.updated_domains[domain] = zone_record
 
     return success
@@ -133,6 +145,15 @@ def load_cache(cache_file: Path, force: bool):
     ),
 )
 @click.option(
+    "--proxied",
+    is_flag=True,
+    help=(
+        "Whether the records are receiving the performance "
+        "and security benefits of Cloudflare."
+    ),
+    default=False,
+)
+@click.option(
     "-4/-no-4",
     "ipv4",
     help=("Turn on/off IPv4 detection and set A records.    [default: on]"),
@@ -168,6 +189,7 @@ def main(
     ctx: click.Context,
     domains: List[str],
     api_token: str,
+    proxied: bool,
     ipv4: bool,
     ipv6: bool,
     delete_missing: bool,
@@ -205,7 +227,15 @@ def main(
 
     for ip_func, ip_cache, record_type in ip_methods:
         exit_code = handle_update(
-            ip_func, delete_missing, record_type, cf, domains, force, ip_cache, debug
+            ip_func,
+            delete_missing,
+            record_type,
+            cf,
+            domains,
+            force,
+            ip_cache,
+            debug,
+            proxied,
         )
         exit_codes.add(exit_code)
 
@@ -234,6 +264,7 @@ def handle_update(
     force: bool,
     ip_cache: IPCache,
     debug: bool,
+    proxied: bool,
 ):
 
     click.echo()
@@ -252,10 +283,10 @@ def handle_update(
         return 1
 
     try:
-        domains_to_update = get_domains(domains, force, current_ip, ip_cache)
+        domains_to_update = get_domains(domains, force, current_ip, ip_cache, proxied)
         if not domains_to_update:
             return 0
-        success = update_domains(cf, domains_to_update, ip_cache, current_ip)
+        success = update_domains(cf, domains_to_update, ip_cache, current_ip, proxied)
 
     except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
         printer.error(str(e))

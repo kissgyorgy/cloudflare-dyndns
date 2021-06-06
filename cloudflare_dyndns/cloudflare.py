@@ -42,11 +42,17 @@ class CloudFlareWrapper:
         printer.info(f'Failed to get domain records for "{domain}"')
         raise CloudFlareError(f"Cannot find {record_type} record for {domain}")
 
-    def create_record(self, domain: str, ip: IPAddress) -> str:
+    def create_record(self, domain: str, ip: IPAddress, proxied: bool = False) -> str:
         zone_id = self.get_zone_id(domain)
         record_type = get_record_type(ip)
         printer.info(f'Creating a new {record_type} record for "{domain}".')
-        payload = {"name": domain, "type": record_type, "content": str(ip), "ttl": 1}
+        payload = {
+            "name": domain,
+            "type": record_type,
+            "content": str(ip),
+            "ttl": 1,
+            "proxied": proxied,
+        }
         try:
             record = self._cf.zones.dns_records.post(zone_id, data=payload)
         except Exception as e:
@@ -60,12 +66,18 @@ class CloudFlareWrapper:
         ip: IPAddress,
         zone_id: Optional[str] = None,
         record_id: Optional[str] = None,
+        proxied: bool = False,
     ):
         zone_id = zone_id or self.get_zone_id(domain)
         record_type = get_record_type(ip)
         record_id = record_id or self.get_record_id(domain, record_type)
         printer.info(f'Updating "{domain}" {record_type} record.')
-        payload = {"name": domain, "type": record_type, "content": str(ip)}
+        payload = {
+            "name": domain,
+            "type": record_type,
+            "content": str(ip),
+            "proxied": proxied,
+        }
         try:
             self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
         except Exception as e:
