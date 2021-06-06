@@ -47,7 +47,6 @@ def update_domains(
     success = True
 
     for domain in domains:
-        get_record_failed = False
         update_record_failed = False
 
         cache_record = ip_cache.updated_domains.get(domain)
