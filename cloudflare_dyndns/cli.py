@@ -39,7 +39,10 @@ def get_domains(
 
 
 def update_domains(
-    cf: CloudFlareWrapper, domains: List[str], ip_cache: IPCache, current_ip: IPAddress,
+    cf: CloudFlareWrapper,
+    domains: Iterable[str],
+    ip_cache: IPCache,
+    current_ip: IPAddress,
 ):
     success = True
 
