@@ -34,7 +34,9 @@ def get_domains(
 
         updated_domains_list = ", ".join(updated_domains)
         if updated_domains:
-            printer.success(f"Domains with this IP address in cache: {updated_domains_list}")
+            printer.success(
+                f"Domains with this IP address in cache: {updated_domains_list}"
+            )
         else:
             printer.info("There are no domains with this IP address in cache.")
 
@@ -85,13 +87,13 @@ def update_domains(
                 record_id = cf.get_record_id(domain, get_record_type(current_ip))
             except CloudFlareError:
                 try:
-                    record_id = cf.create_record(domain, current_ip)
+                    record_id = cf.create_record(domain, current_ip, proxied)
                 except CloudFlare.exceptions.CloudFlareAPIError:
                     success = False
                     continue
             else:
                 try:
-                    cf.update_record(domain, current_ip, zone_id, record_id)
+                    cf.update_record(domain, current_ip, zone_id, record_id, proxied)
                 except CloudFlare.exceptions.CloudFlareAPIError:
                     success = False
                     continue
