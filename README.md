@@ -88,8 +88,8 @@ Options:
 - **v4.0** IPv6 support
 
   Now you can specify `-6` command line option to update AAAA records too.  
-  You can delete records for missing IP addresses with the `--delete-missing`˙
-  option. See #6 for details.  
+  You can delete records for missing IP addresses with the `--delete-missing`
+  option. See [issue #6](https://github.com/kissgyorgy/cloudflare-dyndns/issues/6) for details.  
   There is a new `--proxied` flag for setting Cloudflare DNS services.
 
 - **v3.0** breaks backward compatibility using the global API Key
