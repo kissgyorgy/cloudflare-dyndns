@@ -62,6 +62,9 @@ Options:
                      page / API Tokens tab). Can be set with
                      CLOUDFLARE_API_TOKEN environment variable.  [required]
 
+  --proxied          Whether the records are receiving the performance and
+                     security benefits of Cloudflare.
+
   -4 / -no-4         Turn on/off IPv4 detection and set A records.
                      [default: on]
 
@@ -84,9 +87,10 @@ Options:
 
 - **v4.0** IPv6 support
 
-  Now you can specify `-6` command line option to update AAAA records too.
+  Now you can specify `-6` command line option to update AAAA records too.  
   You can delete records for missing IP addresses with the `--delete-missing`˙
-  option. See #6 for details.
+  option. See #6 for details.  
+  There is a new `--proxied` flag for setting Cloudflare DNS services.
 
 - **v3.0** breaks backward compatibility using the global API Key
 
