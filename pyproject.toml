@@ -13,7 +13,7 @@ python = "^3.9.2"
 click = "^7.0"
 cloudflare = "^2.3"
 requests = "^2.22"
-attrs = "^20.3.0"
+attrs = "^21.1.0"
 pydantic = "^1.8.1"
 
 [tool.poetry.scripts]
