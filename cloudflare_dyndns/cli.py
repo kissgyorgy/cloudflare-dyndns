@@ -21,7 +21,7 @@ def get_domains(
     current_ip: IPAddress,
     ip_cache: IPCache,
     proxied: bool,
-):
+) -> Iterable[str]:
     if force:
         printer.warning("Forced update, ignoring cache")
 
@@ -43,7 +43,7 @@ def get_domains(
         missing_domains = set(domains) - updated_domains
         if not missing_domains:
             printer.success(f"Every domain is up-to-date for {current_ip}.")
-            return None
+            return []
         else:
             return missing_domains
 
@@ -105,7 +105,7 @@ def update_domains(
 
 
 # workaround for: https://github.com/pallets/click/issues/729
-def parse_domains_args(domains: List[str], domains_env: Optional[str]):
+def parse_domains_args(domains: List[str], domains_env: Optional[str]) -> List[str]:
     if not domains and not domains_env:
         raise click.BadArgumentUsage(
             "You need to specify either domains argument or CLOUDFLARE_DOMAINS environment variable!"

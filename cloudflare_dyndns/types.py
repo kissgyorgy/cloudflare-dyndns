@@ -6,7 +6,6 @@ IPAddress = Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
 A = Literal["A"]
 AAAA = Literal["AAAA"]
 RecordType = Union[A, AAAA]
-Domain = NewType("Domain", str)
 
 
 def get_record_type(ip: IPAddress) -> RecordType:
