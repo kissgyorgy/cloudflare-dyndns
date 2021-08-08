@@ -111,7 +111,7 @@ def _get_ip(ip_services: List[IPService], version: str) -> IPAddress:
 def get_ipv4(services: List[IPService] = IPV4_SERVICES) -> ipaddress.IPv4Address:
     ipv4 = _get_ip(services, "4")
 
-    if ipv4.version != 4:
+    if not isinstance(ipv4, ipaddress.IPv4Address):
         raise IPServiceError(
             "IP Service returned IPv6 address instead of IPv4.\n"
             "There is a bug with the IP Service.",
@@ -123,7 +123,7 @@ def get_ipv4(services: List[IPService] = IPV4_SERVICES) -> ipaddress.IPv4Address
 def get_ipv6(services: List[IPService] = IPV6_SERVICES) -> ipaddress.IPv6Address:
     ipv6 = _get_ip(services, "6")
 
-    if ipv6.version != 6:
+    if not isinstance(ipv6, ipaddress.IPv6Address):
         raise IPServiceError(
             "IP Service returned IPv4 address instead of IPv6.\n"
             "You either don't have an IPv6 address, or there is a bug with the IP Service.",
