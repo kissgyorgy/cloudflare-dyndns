@@ -52,7 +52,7 @@ def strip_whitespace(res: str) -> str:
     return res.strip()
 
 
-@attr.s(auto_attribs=True)
+@attr.define
 class IPService:
     name: str
     url: str
