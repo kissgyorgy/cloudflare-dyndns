@@ -22,6 +22,7 @@ cloudflare-dyndns = 'cloudflare_dyndns.cli:main'
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.3"
 black = {version = "^19.10b0", allow-prereleases = true}
+pyoxidizer = "^0.16.2"
 
 [tool.pytest.ini_options]
 markers = [
