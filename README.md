@@ -83,6 +83,12 @@ Options:
   --help             Show this message and exit.
 ```
 
+## Shell exit codes
+
+- `1`: Unknown error happened
+- `2`: IP cannot be determined (IP service error)
+- `3`: CloudFlare related error (cannot call API, cannot get records, etc...)
+
 # Changelog
 
 - **v4.0** IPv6 support

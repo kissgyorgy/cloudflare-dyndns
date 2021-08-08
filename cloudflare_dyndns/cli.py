@@ -245,16 +245,14 @@ def main(
     cache_manager.save(cache)
     click.echo()
 
-    exit_codes.remove(0)
+    exit_codes.discard(0)
     if not exit_codes:
         printer.success("Done.")
         return
 
-    # The smaller the exit code, the more specific the issue is
     final_exit_code = min(exit_codes)
-    if final_exit_code != 0:
-        printer.warning("There were some errors during update.")
-        ctx.exit(final_exit_code)
+    printer.warning("There were some errors during update.")
+    ctx.exit(final_exit_code)
 
 
 def handle_update(
@@ -274,15 +272,15 @@ def handle_update(
         current_ip = get_ip_func()
     except IPServiceError as e:
         printer.error(str(e))
-        if delete_missing:
-            for domain in domains:
-                cf.delete_record(domain, record_type)
-            ip_cache.clear()
-            # when the --delete-missing flag is specified, this is the expected behavior
-            # so there should be no error reported
-            return 0
+        if not delete_missing:
+            return 3
 
-        return 1
+        for domain in domains:
+            cf.delete_record(domain, record_type)
+        ip_cache.clear()
+        # when the --delete-missing flag is specified, this is the expected behavior
+        # so there should be no error reported
+        return 0
 
     try:
         domains_to_update = get_domains(domains, force, current_ip, ip_cache, proxied)
@@ -300,7 +298,7 @@ def handle_update(
         printer.error(f"Unknown error: {e}")
         if debug:
             raise
-        return 3
+        return 1
 
     if not success:
         return 2
