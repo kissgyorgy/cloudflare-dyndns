@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 RUN useradd --home-dir /app cfdns
 WORKDIR /app
