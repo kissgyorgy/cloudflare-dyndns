@@ -25,6 +25,9 @@ Or you can use [the Docker image](https://hub.docker.com/r/kissgyorgy/cloudflare
 $ docker run --rm -it kissgyorgy/cloudflare-dyndns --help
 ```
 
+Please note that before you can use the `-6` IPv6 option in Docker, you need to [enable IPv6 support in the Docker daemon](https://docs.docker.com/config/daemon/ipv6/).
+Afterward, you can choose to use either IPv4 or IPv6 (or both) with any container, service, or network.
+
 # Note
 
 If you use this script, it "takes over" the handling of the record of those
