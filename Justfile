@@ -22,8 +22,13 @@ build-docker:
 
 build-all: build-package build-binary build-docker
 
-release:
+release-docker:
+    podman push kissgyorgy/cloudflare-dyndns:v4.1
+
+release-python:
     poetry publish
+
+release-all: release-docker release-python
 
 requirements-txt:
     poetry export -o requirements.txt
