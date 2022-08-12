@@ -1,6 +1,5 @@
 import ipaddress
-from typing import Literal, Union, NewType
-
+from typing import Literal, Union
 
 IPAddress = Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
 A = Literal["A"]

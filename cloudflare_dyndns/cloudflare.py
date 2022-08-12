@@ -1,8 +1,10 @@
 import functools
 from typing import Optional
+
 import CloudFlare
-from .types import IPAddress, RecordType, get_record_type
+
 from . import printer
+from .types import IPAddress, RecordType, get_record_type
 
 
 class CloudFlareError(Exception):

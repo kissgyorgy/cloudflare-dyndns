@@ -1,6 +1,6 @@
 import functools
-import click
 
+import click
 
 success = functools.partial(click.secho, fg="green")
 warning = functools.partial(click.secho, fg="yellow")

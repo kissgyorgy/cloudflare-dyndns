@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 import os
-from typing import Callable, List, Optional, Iterable
 from pathlib import Path
+from typing import Callable, Iterable, List, Optional
+
 import click
 import CloudFlare
-from .cache import CacheManager, Cache, IPCache, InvalidCache, ZoneRecord
-from .cloudflare import CloudFlareError, CloudFlareWrapper
-from .types import IPAddress, RecordType, get_record_type
-from .ip_services import IPServiceError, get_ipv4, get_ipv6
-from . import printer
 
+from . import printer
+from .cache import Cache, CacheManager, InvalidCache, IPCache, ZoneRecord
+from .cloudflare import CloudFlareError, CloudFlareWrapper
+from .ip_services import IPServiceError, get_ipv4, get_ipv6
+from .types import IPAddress, RecordType, get_record_type
 
 cache_path = os.environ.get("XDG_CACHE_HOME", "~/.cache")
 XDG_CACHE_HOME = Path(cache_path).expanduser()

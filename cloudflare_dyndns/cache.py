@@ -1,8 +1,10 @@
 from pathlib import Path
 from typing import Dict, Optional, Union
+
 from pydantic import BaseModel
-from .types import IPAddress
+
 from . import printer
+from .types import IPAddress
 
 
 class InvalidCache(Exception):

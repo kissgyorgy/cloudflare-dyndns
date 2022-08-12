@@ -1,11 +1,14 @@
-from . import printer
-from cloudflare_dyndns.types import IPAddress
-from typing import Callable, List
-import attr
-import certifi
 import ipaddress
 import os
+from typing import Callable, List
+
+import attr
+import certifi
 import requests
+
+from cloudflare_dyndns.types import IPAddress
+
+from . import printer
 
 # Workaround for certifi resource location doesn't work with PyOxidizer.
 # See: https://github.com/psf/requests/blob/v2.23.0/requests/utils.py#L40
