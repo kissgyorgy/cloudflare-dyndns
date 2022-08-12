@@ -1,10 +1,14 @@
+import ssl
 from pathlib import Path
 from typing import Dict, Optional, Union
 
+import truststore
 from pydantic import BaseModel
 
 from . import printer
 from .types import IPAddress
+
+ssl_context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
 
 class InvalidCache(Exception):

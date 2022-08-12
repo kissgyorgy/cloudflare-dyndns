@@ -1,21 +1,13 @@
 import ipaddress
-import os
 from typing import Callable, List
 
 import attr
-import certifi
-import requests
+import httpx
 
 from cloudflare_dyndns.types import IPAddress
 
 from . import printer
-
-# Workaround for certifi resource location doesn't work with PyOxidizer.
-# See: https://github.com/psf/requests/blob/v2.23.0/requests/utils.py#L40
-# and: https://github.com/indygreg/PyOxidizer/issues/237
-certifi.where = lambda: os.environ.get(
-    "REQUESTS_CA_BUNDLE", "/etc/ssl/certs/ca-certificates.crt"
-)
+from .cache import ssl_context
 
 
 class IPServiceError(Exception):
@@ -87,12 +79,12 @@ def _get_ip(ip_services: List[IPService], version: str) -> IPAddress:
             f"Checking current IPv{version} address with service: {ip_service.name} ({ip_service.url})"
         )
         try:
-            res = requests.get(ip_service.url)
-        except requests.exceptions.RequestException:
+            res = httpx.get(ip_service.url, verify=ssl_context)
+        except httpx.RequestError:
             printer.info(f"Service {ip_service.url} unreachable, skipping.")
             continue
 
-        if not res.ok:
+        if not res.is_success:
             printer.info(f"Service returned error status: {res.status_code}, skipping.")
             continue
 
