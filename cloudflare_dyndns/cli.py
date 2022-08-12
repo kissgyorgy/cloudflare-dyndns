@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Callable, Iterable, List, Optional
 
 import click
-import CloudFlare
 
 from . import printer
 from .cache import Cache, CacheManager, InvalidCache, IPCache, ZoneRecord
@@ -71,7 +70,7 @@ def update_domains(
             record_id = cache_record.record_id
             try:
                 cf.update_record(domain, current_ip, zone_id, record_id, proxied)
-            except CloudFlare.exceptions.CloudFlareAPIError:
+            except CloudFlareError:
                 printer.error("Invalid cache, deleting")
                 del ip_cache.updated_domains[domain]
                 update_record_failed = True
@@ -89,13 +88,13 @@ def update_domains(
             except CloudFlareError:
                 try:
                     record_id = cf.create_record(domain, current_ip, proxied)
-                except CloudFlare.exceptions.CloudFlareAPIError:
+                except CloudFlareError:
                     success = False
                     continue
             else:
                 try:
                     cf.update_record(domain, current_ip, zone_id, record_id, proxied)
-                except CloudFlare.exceptions.CloudFlareAPIError:
+                except CloudFlareError:
                     success = False
                     continue
 
@@ -289,7 +288,7 @@ def handle_update(
             return 0
         success = update_domains(cf, domains_to_update, ip_cache, current_ip, proxied)
 
-    except (CloudFlare.exceptions.CloudFlareAPIError, CloudFlareError) as e:
+    except CloudFlareError as e:
         printer.error(str(e))
         if debug:
             raise

@@ -1,9 +1,11 @@
 import functools
+import ssl
 from typing import Optional
 
-import CloudFlare
+import httpx
 
 from . import printer
+from .cache import ssl_context
 from .types import IPAddress, RecordType, get_record_type
 
 
@@ -12,13 +14,21 @@ class CloudFlareError(Exception):
 
 
 class CloudFlareWrapper:
+    API_URL = "https://api.cloudflare.com/client/v4/"
+
     def __init__(self, api_token: str):
-        self._cf = CloudFlare.CloudFlare(token=api_token)
+        headers = {"Authorization": f"Bearer {api_token}"}
+        self._client = httpx.Client(base_url=self.API_URL, headers=headers, verify=ssl_context)
+
+    def _request(self, method: str, url: str, **kwargs) -> dict:
+        res = self._client.request(method, url, **kwargs)
+        result = res.json()["result"]
+        return result
 
     @functools.lru_cache
     def get_zone_id(self, domain: str) -> str:
         without_subdomains = ".".join(domain.rsplit(".")[-2:])
-        zone_list = self._cf.zones.get(params={"name": without_subdomains})
+        zone_list = self._request("GET", "/zones", params={"name": without_subdomains})
 
         # not sure if multiple zones can exist for the same domain
         try:
@@ -32,7 +42,10 @@ class CloudFlareWrapper:
     @functools.lru_cache
     def _get_records(self, domain: str) -> dict:
         zone_id = self.get_zone_id(domain)
-        return self._cf.zones.dns_records.get(zone_id, params={"name": domain})
+        try:
+            return self._request("GET", f"/zones/{zone_id}/dns_records", params={"name": domain})
+        except httpx.RequestError as e:
+            raise CloudFlareError(e.args)
 
     @functools.lru_cache
     def get_record_id(self, domain: str, record_type: RecordType) -> str:
@@ -56,7 +69,7 @@ class CloudFlareWrapper:
             "proxied": proxied,
         }
         try:
-            record = self._cf.zones.dns_records.post(zone_id, data=payload)
+            record = self._request("POST", f"/zones/{zone_id}/dns_records", json=payload)
         except Exception as e:
             printer.error(f'Failed to create new record for "{domain}": {e}')
             raise
@@ -81,7 +94,7 @@ class CloudFlareWrapper:
             "proxied": proxied,
         }
         try:
-            self._cf.zones.dns_records.put(zone_id, record_id, data=payload)
+            self._request("PUT", f"zones/{zone_id}/dns_records/{record_id}", json=payload)
         except Exception as e:
             printer.error(f'Failed to update domain "{domain}": {e}')
             raise
@@ -94,4 +107,4 @@ class CloudFlareWrapper:
         except CloudFlareError:
             printer.info(f'{record_type} record for "{domain}" doesn\'t exist.')
             return
-        self._cf.zones.dns_records.delete(zone_id, record_id)
+        self._request("DELETE", f"zones/{zone_id}/dns_records/{record_id}")
