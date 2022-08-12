@@ -1,7 +1,9 @@
 version := "v" + `poetry version -s`
 binary-name := "cloudflare-dyndns-linux-x86-" + version
 sha256-name := binary-name + ".sha256"
-docker-image := "kissgyorgy/cloudflare-dyndns:" + version
+docker-image := "kissgyorgy/cloudflare-dyndns"
+docker-image-latest := docker-image + ":latest"
+docker-image-version := docker-image + ":" + version
 
 install:
     poetry install
@@ -18,12 +20,14 @@ build-binary: requirements-txt
     sha256sum {{ binary-name }} > {{ sha256-name }}
 
 build-docker:
-    podman build -t {{ docker-image }} .
+    podman build -t docker.io/{{ docker-image-version }} .
+    podman tag docker.io/{{ docker-image-version }} docker.io/{{ docker-image-latest }}
 
 build-all: build-package build-binary build-docker
 
-release-docker:
-    podman push kissgyorgy/cloudflare-dyndns:{{ version }}
+release-docker: build-docker
+    podman push docker.io/{{ docker-image-version }}
+    podman push docker.io/{{ docker-image-latest }}
 
 release-python:
     poetry publish
