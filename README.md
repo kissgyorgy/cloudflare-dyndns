@@ -94,6 +94,10 @@ Options:
 
 # Changelog
 
+- **v5.0** Mac OS Support
+
+  Able to read CA bundle from trust stores on Mac OS too, no need for file-based CA store.
+
 - **v4.0** IPv6 support
 
   Now you can specify `-6` command line option to update AAAA records too.  
