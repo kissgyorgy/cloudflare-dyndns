@@ -9,7 +9,7 @@ repository = "https://github.com/kissgyorgy/cloudflare-dyndns"
 
 
 [tool.poetry.dependencies]
-python = "^3.9.2"
+python = "^3.10"
 click = "^7.0"
 cloudflare = "^2.3"
 requests = "^2.22"
