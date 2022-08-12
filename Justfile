@@ -1,7 +1,7 @@
-version := `poetry version -s`
+version := "v" + `poetry version -s`
 binary-name := "cloudflare-dyndns-linux-x86-" + version
 sha256-name := binary-name + ".sha256"
-docker-image := "kissgyorgy/cloudflare-dyndns:v" + version
+docker-image := "kissgyorgy/cloudflare-dyndns:" + version
 
 install:
     poetry install
@@ -23,7 +23,7 @@ build-docker:
 build-all: build-package build-binary build-docker
 
 release-docker:
-    podman push kissgyorgy/cloudflare-dyndns:v4.1
+    podman push kissgyorgy/cloudflare-dyndns:{{ version }}
 
 release-python:
     poetry publish
