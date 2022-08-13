@@ -73,13 +73,13 @@ IPV6_SERVICES = [
 ]
 
 
-def _get_ip(ip_services: List[IPService], version: str) -> IPAddress:
+def _get_ip(client: httpx.Client, ip_services: List[IPService], version: str) -> IPAddress:
     for ip_service in ip_services:
         printer.info(
             f"Checking current IPv{version} address with service: {ip_service.name} ({ip_service.url})"
         )
         try:
-            res = httpx.get(ip_service.url, verify=ssl_context)
+            res = client.get(ip_service.url)
         except httpx.RequestError:
             printer.info(f"Service {ip_service.url} unreachable, skipping.")
             continue
@@ -105,7 +105,9 @@ def _get_ip(ip_services: List[IPService], version: str) -> IPAddress:
 
 
 def get_ipv4(services: List[IPService] = IPV4_SERVICES) -> ipaddress.IPv4Address:
-    ipv4 = _get_ip(services, "4")
+    transport = httpx.HTTPTransport(local_address="0.0.0.0")
+    with httpx.Client(transport=transport, verify=ssl_context) as client:
+        ipv4 = _get_ip(client, services, "4")
 
     if not isinstance(ipv4, ipaddress.IPv4Address):
         raise IPServiceError(
@@ -117,7 +119,9 @@ def get_ipv4(services: List[IPService] = IPV4_SERVICES) -> ipaddress.IPv4Address
 
 
 def get_ipv6(services: List[IPService] = IPV6_SERVICES) -> ipaddress.IPv6Address:
-    ipv6 = _get_ip(services, "6")
+    transport = httpx.HTTPTransport(local_address="::")
+    with httpx.Client(transport=transport, verify=ssl_context) as client:
+        ipv6 = _get_ip(client, services, "6")
 
     if not isinstance(ipv6, ipaddress.IPv6Address):
         raise IPServiceError(
