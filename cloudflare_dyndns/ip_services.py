@@ -64,9 +64,6 @@ IPV4_SERVICES = [
 
 IPV6_SERVICES = [
     # These are always return IPv6 addresses first, when the machine has IPv6
-    IPService(
-        "CloudFlare IPv6 trace", "https://[2606:4700:4700::1111]/cdn-cgi/trace", parse_cloudflare_trace_ip,
-    ),
     IPService("ip.tyk.nu", "https://ip.tyk.nu/"),
     IPService("wgetip.com", "https://wgetip.com/"),
     IPService("major.io icanhazip", "https://ipv6.icanhazip.com/"),
