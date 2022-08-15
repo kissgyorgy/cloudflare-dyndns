@@ -29,7 +29,7 @@ release-docker: build-docker
     podman push docker.io/{{ docker-image-version }}
     podman push docker.io/{{ docker-image-latest }}
 
-release-python:
+release-python: build-package
     poetry publish
 
 release-all: release-docker release-python
