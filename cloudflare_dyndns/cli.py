@@ -25,30 +25,30 @@ def get_domains(
     if force:
         printer.warning("Forced update, ignoring cache")
 
-    elif current_ip == ip_cache.address:
-        updated_domains = {
-            d
-            for d, zone_record in ip_cache.updated_domains.items()
-            if zone_record.proxied is proxied
-        }
+    elif current_ip != ip_cache.address:
+        ip_cache.address = current_ip
+        return domains
 
-        updated_domains_list = ", ".join(updated_domains)
-        if updated_domains:
-            printer.success(
-                f"Domains with this IP address in cache: {updated_domains_list}"
-            )
-        else:
-            printer.info("There are no domains with this IP address in cache.")
+    updated_domains = {
+        d
+        for d, zone_record in ip_cache.updated_domains.items()
+        if zone_record.proxied is proxied
+    }
 
-        missing_domains = set(domains) - updated_domains
-        if not missing_domains:
-            printer.success(f"Every domain is up-to-date for {current_ip}.")
-            return []
-        else:
-            return missing_domains
+    updated_domains_list = ", ".join(updated_domains)
+    if updated_domains:
+        printer.success(
+            f"Domains with this IP address in cache: {updated_domains_list}"
+        )
+    else:
+        printer.info("There are no domains with this IP address in cache.")
 
-    ip_cache.address = current_ip
-    return domains
+    missing_domains = set(domains) - updated_domains
+    if not missing_domains:
+        printer.success(f"Every domain is up-to-date for {current_ip}.")
+        return []
+    else:
+        return missing_domains
 
 
 def update_domains(
