@@ -5,6 +5,8 @@ from typing import Callable, Iterable, List, Optional
 
 import click
 
+from cloudflare_dyndns.updater import CFUpdater
+
 from . import printer
 from .cache import Cache, CacheManager, IPCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
@@ -13,94 +15,6 @@ from .types import IPAddress, RecordType, get_record_type
 
 cache_path = os.environ.get("XDG_CACHE_HOME", "~/.cache")
 XDG_CACHE_HOME = Path(cache_path).expanduser()
-
-
-def get_domains(
-    domains: List[str],
-    force: bool,
-    current_ip: IPAddress,
-    old_cache: IPCache,
-    proxied: bool,
-) -> Iterable[str]:
-    if force:
-        printer.warning("Forced update, ignoring cache")
-
-    elif current_ip != old_cache.address:
-        return domains
-
-    updated_domains = {
-        d
-        for d, zone_record in old_cache.updated_domains.items()
-        if zone_record.proxied is proxied
-    }
-
-    updated_domains_list = ", ".join(updated_domains)
-    if updated_domains:
-        printer.success(
-            f"Domains with this IP address in cache: {updated_domains_list}"
-        )
-    else:
-        printer.info("There are no domains with this IP address in cache.")
-
-    missing_domains = set(domains) - updated_domains
-    if not missing_domains:
-        printer.success(f"Every domain is up-to-date for {current_ip}.")
-        return []
-    else:
-        return missing_domains
-
-
-def update_domains(
-    cf: CloudFlareWrapper,
-    domains: Iterable[str],
-    old_cache: IPCache,
-    new_cache: IPCache,
-    current_ip: IPAddress,
-    proxied: bool,
-):
-    success = True
-
-    for domain in domains:
-        update_record_failed = False
-
-        cache_record = old_cache.updated_domains.get(domain)
-
-        if cache_record is not None:
-            zone_id = cache_record.zone_id
-            record_id = cache_record.record_id
-            try:
-                cf.update_record(domain, current_ip, zone_id, record_id, proxied)
-            except CloudFlareError:
-                printer.error(f"Couldn't update record: {domain}")
-                update_record_failed = True
-
-        if cache_record is None or update_record_failed:
-            try:
-                zone_id = cf.get_zone_id(domain)
-            except CloudFlareError:
-                # TODO: try to create zone?
-                success = False
-                continue
-
-            try:
-                record_id = cf.get_record_id(domain, get_record_type(current_ip))
-            except CloudFlareError:
-                try:
-                    record_id = cf.create_record(domain, current_ip, proxied)
-                except CloudFlareError:
-                    success = False
-                    continue
-            else:
-                try:
-                    cf.update_record(domain, current_ip, zone_id, record_id, proxied)
-                except CloudFlareError:
-                    success = False
-                    continue
-
-        zone_record = ZoneRecord(zone_id=zone_id, record_id=record_id, proxied=proxied)
-        new_cache.updated_domains[domain] = zone_record
-
-    return success
 
 
 # workaround for: https://github.com/pallets/click/issues/729
@@ -210,24 +124,17 @@ def main(
     old_cache, new_cache = cache_manager.load()
 
     cf = CloudFlareWrapper(api_token)
+    updater = CFUpdater(
+        domains, cf, old_cache, new_cache, force, delete_missing, proxied, debug
+    )
 
     exit_codes = set()
-    ip_methods = [(get_ipv4, old_cache.ipv4, new_cache.ipv4, "A")] if ipv4 else []
-    ip_methods += [(get_ipv6, old_cache.ipv6, new_cache.ipv6, "AAAA")] if ipv6 else []
 
-    for ip_func, old_ipcache, new_ipcache, record_type in ip_methods:
-        exit_code = handle_update(
-            ip_func,
-            delete_missing,
-            record_type,
-            cf,
-            domains,
-            force,
-            old_ipcache,
-            new_ipcache,
-            debug,
-            proxied,
-        )
+    if ipv4:
+        exit_code = updater.update_ipv4()
+        exit_codes.add(exit_code)
+    if ipv6:
+        exit_code = updater.update_ipv6()
         exit_codes.add(exit_code)
 
     click.echo()
@@ -243,61 +150,6 @@ def main(
     final_exit_code = min(exit_codes)
     printer.warning("There were some errors during update.")
     ctx.exit(final_exit_code)
-
-
-def handle_update(
-    get_ip_func: Callable,
-    delete_missing: bool,
-    record_type: RecordType,
-    cf: CloudFlareWrapper,
-    domains: List[str],
-    force: bool,
-    old_cache: IPCache,
-    new_cache: IPCache,
-    debug: bool,
-    proxied: bool,
-):
-    click.echo()
-    try:
-        current_ip = get_ip_func()
-    except IPServiceError as e:
-        printer.error(str(e))
-        if not delete_missing:
-            return 3
-
-        for domain in domains:
-            cf.delete_record(domain, record_type)
-        # when the --delete-missing flag is specified, this is the expected behavior
-        # so there should be no error reported
-        return 0
-
-    if current_ip != old_cache.address:
-        new_cache.address = current_ip
-
-    domains_to_update = get_domains(domains, force, current_ip, old_cache, proxied)
-    if not domains_to_update:
-        return 0
-
-    try:
-        success = update_domains(
-            cf, domains_to_update, old_cache, new_cache, current_ip, proxied
-        )
-    except CloudFlareError as e:
-        printer.error(str(e))
-        if debug:
-            raise
-        return 2
-
-    except Exception as e:
-        printer.error(f"Unknown error: {e}")
-        if debug:
-            raise
-        return 1
-
-    if not success:
-        return 2
-
-    return 0
 
 
 if __name__ == "__main__":
