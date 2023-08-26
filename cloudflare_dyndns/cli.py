@@ -178,7 +178,7 @@ def load_cache(cache_file: Path, force: bool):
 @click.option(
     "--cache-file",
     help="Cache file",
-    type=click.Path(dir_okay=False, writable=True, readable=True),
+    type=click.Path(dir_okay=False, writable=True, readable=True, path_type=Path),
     default=XDG_CACHE_HOME / "cloudflare-dyndns" / "ip.cache",
     show_default=True,
 )
@@ -195,7 +195,7 @@ def main(
     ipv4: bool,
     ipv6: bool,
     delete_missing: bool,
-    cache_file: str,
+    cache_file: Path,
     force: bool,
     debug: bool,
 ):
@@ -220,7 +220,7 @@ def main(
     domains_env = os.environ.get("CLOUDFLARE_DOMAINS")
     domains = parse_domains_args(domains, domains_env)
 
-    cache_manager, cache = load_cache(Path(cache_file), force)
+    cache_manager, cache = load_cache(cache_file, force)
     cf = CloudFlareWrapper(api_token)
 
     exit_codes = set()
@@ -266,7 +266,6 @@ def handle_update(
     debug: bool,
     proxied: bool,
 ):
-
     click.echo()
     try:
         current_ip = get_ip_func()
