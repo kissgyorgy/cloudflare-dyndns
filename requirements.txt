@@ -4,9 +4,6 @@ annotated-types==0.5.0 ; python_version >= "3.10" and python_version < "4.0" \
 anyio==3.6.1 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:413adf95f93886e442aea925f3ee43baa5a765a64a0f52c6081894f9992fdd0b \
     --hash=sha256:cb29b9c70620506a9a8f87a309591713446953302d7d995344d0d7c6c0c9a7be
-attrs==21.4.0 ; python_version >= "3.10" and python_version < "4.0" \
-    --hash=sha256:2d27e3784d7a565d36ab851fe94887c5eccd6a463168875832a1be79c82828b4 \
-    --hash=sha256:626ba8234211db98e869df76230a137c4c40a12d72445c45d5f5b716f076e2fd
 certifi==2022.6.15 ; python_version >= "3.10" and python_version < "4.0" \
     --hash=sha256:84c85a9078b11105f04f3036a9482ae10e4621616db313fe045dd24743a0820d \
     --hash=sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412
