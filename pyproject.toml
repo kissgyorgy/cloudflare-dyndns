@@ -18,7 +18,8 @@ httpx = "^0.24.0"
 [tool.poetry.scripts]
 cloudflare-dyndns = 'cloudflare_dyndns.cli:main'
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+pyoxidizer = "^0.24.0"
 pytest = "^6.2.3"
 black = { version = "^19.10b0", allow-prereleases = true }
 pylint-starlark = "^1.1"
