@@ -1,7 +1,7 @@
 import ipaddress
+from dataclasses import dataclass
 from typing import Callable, List, Optional
 
-import attr
 import httpx
 
 from cloudflare_dyndns.types import IPAddress
@@ -43,7 +43,7 @@ def strip_whitespace(res: str) -> str:
     return res.strip()
 
 
-@attr.define
+@dataclass
 class IPService:
     name: str
     url: str

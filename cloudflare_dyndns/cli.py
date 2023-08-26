@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 import os
 from pathlib import Path
-from typing import Callable, Iterable, List, Optional
+from typing import List, Optional
 
 import click
 
 from cloudflare_dyndns.updater import CFUpdater
 
 from . import printer
-from .cache import Cache, CacheManager, IPCache, ZoneRecord
-from .cloudflare import CloudFlareError, CloudFlareWrapper
-from .ip_services import IPServiceError, get_ipv4, get_ipv6
-from .types import IPAddress, RecordType, get_record_type
+from .cache import CacheManager
+from .cloudflare import CloudFlareWrapper
 
 cache_path = os.environ.get("XDG_CACHE_HOME", "~/.cache")
 XDG_CACHE_HOME = Path(cache_path).expanduser()

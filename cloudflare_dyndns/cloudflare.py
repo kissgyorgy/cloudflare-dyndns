@@ -1,5 +1,4 @@
 import functools
-import ssl
 from typing import Optional
 
 import httpx
@@ -18,7 +17,9 @@ class CloudFlareWrapper:
 
     def __init__(self, api_token: str):
         headers = {"Authorization": f"Bearer {api_token}"}
-        self._client = httpx.Client(base_url=self.API_URL, headers=headers, verify=ssl_context)
+        self._client = httpx.Client(
+            base_url=self.API_URL, headers=headers, verify=ssl_context
+        )
 
     def _request(self, method: str, url: str, **kwargs) -> dict:
         res = self._client.request(method, url, **kwargs)
@@ -43,7 +44,9 @@ class CloudFlareWrapper:
     def _get_records(self, domain: str) -> dict:
         zone_id = self.get_zone_id(domain)
         try:
-            return self._request("GET", f"/zones/{zone_id}/dns_records", params={"name": domain})
+            return self._request(
+                "GET", f"/zones/{zone_id}/dns_records", params={"name": domain}
+            )
         except httpx.RequestError as e:
             raise CloudFlareError(e.args)
 
@@ -69,7 +72,9 @@ class CloudFlareWrapper:
             "proxied": proxied,
         }
         try:
-            record = self._request("POST", f"/zones/{zone_id}/dns_records", json=payload)
+            record = self._request(
+                "POST", f"/zones/{zone_id}/dns_records", json=payload
+            )
         except Exception as e:
             printer.error(f'Failed to create new record for "{domain}": {e}')
             raise
@@ -94,7 +99,9 @@ class CloudFlareWrapper:
             "proxied": proxied,
         }
         try:
-            self._request("PUT", f"zones/{zone_id}/dns_records/{record_id}", json=payload)
+            self._request(
+                "PUT", f"zones/{zone_id}/dns_records/{record_id}", json=payload
+            )
         except Exception as e:
             printer.error(f'Failed to update domain "{domain}": {e}')
             raise
