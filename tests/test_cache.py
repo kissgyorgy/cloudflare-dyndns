@@ -1,14 +1,6 @@
 import ipaddress
 
-import pytest
-
-from cloudflare_dyndns.cache import (
-    Cache,
-    CacheManager,
-    InvalidCache,
-    IPCache,
-    ZoneRecord,
-)
+from cloudflare_dyndns.cache import Cache, CacheManager, IPCache, ZoneRecord
 
 
 def test_roundtrip(tmp_path):
@@ -41,6 +33,6 @@ def test_invalid_cache(tmp_path, capsys):
     cache_path = tmp_path / "invalid_cache.json"
     cache_path.write_text("Invalid cache")
     manager = CacheManager(cache_path)
-    with pytest.raises(InvalidCache):
-        manager.load()
+    manager.load()
     assert "Invalid cache file" in capsys.readouterr().out
+    assert not cache_path.exists()

@@ -38,8 +38,11 @@ class Cache(BaseModel):
 
 
 class CacheManager:
-    def __init__(self, cache_path: Union[str, Path], *, debug: bool = False):
+    def __init__(
+        self, cache_path: Union[str, Path], force: bool = False, *, debug: bool = False
+    ):
         self._path = Path(cache_path).expanduser()
+        self._force = force
         self._debug = debug
 
     def ensure_path(self):
@@ -48,6 +51,17 @@ class CacheManager:
         self._path.parent.mkdir(exist_ok=True, parents=True)
 
     def load(self) -> Cache:
+        if self._force:
+            return Cache()
+
+        try:
+            return self._load()
+        except InvalidCache:
+            self.delete()
+
+        return Cache()
+
+    def _load(self):
         printer.info(f"Loading cache from: {self._path}")
         try:
             cache_json = self._path.read_text()

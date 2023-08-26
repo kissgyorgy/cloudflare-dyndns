@@ -6,7 +6,7 @@ from typing import Callable, Iterable, List, Optional
 import click
 
 from . import printer
-from .cache import Cache, CacheManager, InvalidCache, IPCache, ZoneRecord
+from .cache import CacheManager, IPCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
 from .ip_services import IPServiceError, get_ipv4, get_ipv6
 from .types import IPAddress, RecordType, get_record_type
@@ -122,19 +122,6 @@ def parse_domains_args(domains: List[str], domains_env: Optional[str]) -> List[s
     return domains
 
 
-def load_cache(cache_file: Path, force: bool):
-    cache_manager = CacheManager(cache_file)
-    cache_manager.ensure_path()
-
-    if not force:
-        try:
-            return cache_manager, cache_manager.load()
-        except InvalidCache:
-            cache_manager.delete()
-
-    return cache_manager, Cache()
-
-
 @click.command()
 @click.argument("domains", nargs=-1)
 @click.option(
@@ -220,7 +207,9 @@ def main(
     domains_env = os.environ.get("CLOUDFLARE_DOMAINS")
     domains = parse_domains_args(domains, domains_env)
 
-    cache_manager, cache = load_cache(cache_file, force)
+    cache_manager = CacheManager(cache_file, force)
+    cache = cache_manager.load()
+
     cf = CloudFlareWrapper(api_token)
 
     exit_codes = set()
