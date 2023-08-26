@@ -703,13 +703,13 @@ files = [
 
 [[package]]
 name = "truststore"
-version = "0.4.0"
-description = "Verify certificates using OS trust stores"
+version = "0.7.0"
+description = "Verify certificates using native system trust stores"
 optional = false
 python-versions = ">= 3.10"
 files = [
-    {file = "truststore-0.4.0-py3-none-any.whl", hash = "sha256:018f261a13c970eb814ac424db4a48d538310416ddad4231ca49033c210eb5cf"},
-    {file = "truststore-0.4.0.tar.gz", hash = "sha256:acf60559fda45368f48f98a174568d8fc9b8597faccfaa25f243a4acd48ad13d"},
+    {file = "truststore-0.7.0-py3-none-any.whl", hash = "sha256:a4b410a365cafec4c2b386b30df53d89a6a4466cc229c7026e41c2d847f94fe9"},
+    {file = "truststore-0.7.0.tar.gz", hash = "sha256:72e784507a624375434381e4bad3eff8614bc8c845a7f5ae16a25a2624d0683f"},
 ]
 
 [[package]]
@@ -832,4 +832,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "989faee4c37a1b02dab4d20d873a25e69f3af7541bd62bf700770c9c998b0381"
+content-hash = "4f9f0ccd5ceb9e9733041a8c0bdb58f123485a62620d2521a9027dab0dd4b870"
