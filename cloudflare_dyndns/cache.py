@@ -48,7 +48,8 @@ class CacheManager:
     def ensure_path(self):
         if self._debug:
             printer.info(f"Creating cache directory: {self._path}")
-        self._path.parent.mkdir(exist_ok=True, parents=True)
+        if not self._path.parent.exists():
+            self._path.parent.mkdir(parents=True)
 
     def load(self) -> Cache:
         if self._force:
@@ -85,6 +86,7 @@ class CacheManager:
         if self._debug:
             printer.info(f"Saving cache: {cache_json}")
         printer.info(f"Saving cache to: {self._path}")
+        self.ensure_path()
         self._path.write_text(cache_json)
 
     def delete(self):
