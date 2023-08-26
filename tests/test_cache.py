@@ -1,12 +1,14 @@
 import ipaddress
+
+import pytest
+
 from cloudflare_dyndns.cache import (
-    CacheManager,
     Cache,
-    IPCache,
+    CacheManager,
     InvalidCache,
+    IPCache,
     ZoneRecord,
 )
-import pytest
 
 
 def test_roundtrip(tmp_path):

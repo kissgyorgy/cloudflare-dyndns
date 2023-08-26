@@ -1,5 +1,5 @@
 import ipaddress
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import attr
 import httpx
@@ -15,11 +15,8 @@ class IPServiceError(Exception):
     through the IP Services.
     """
 
-    def __init__(self, msg: str):
-        super().__init__(msg)
 
-
-def parse_cloudflare_trace_ip(res: str) -> str:
+def parse_cloudflare_trace_ip(res: str) -> Optional[str]:
     """Parses the IP address line from the cloudflare trace service response.
     Example response:
         fl=114f30
@@ -37,7 +34,7 @@ def parse_cloudflare_trace_ip(res: str) -> str:
     """
     for line in res.splitlines():
         if line.startswith("ip="):
-            ip = line[len("ip="):]
+            ip = line[len("ip=") :]
             return ip
 
 
@@ -55,11 +52,19 @@ class IPService:
 
 IPV4_SERVICES = [
     IPService(
-        "CloudFlare IPv4 trace", "https://1.1.1.1/cdn-cgi/trace", parse_cloudflare_trace_ip,
+        "CloudFlare IPv4 trace",
+        "https://1.1.1.1/cdn-cgi/trace",
+        parse_cloudflare_trace_ip,
     ),
-    IPService("AWS check ip", "https://checkip.amazonaws.com/", ),
+    IPService(
+        "AWS check ip",
+        "https://checkip.amazonaws.com/",
+    ),
     IPService("major.io icanhazip", "https://ipv4.icanhazip.com/"),
-    IPService("Namecheap DynamicDNS", "https://dynamicdns.park-your-domain.com/getip", ),
+    IPService(
+        "Namecheap DynamicDNS",
+        "https://dynamicdns.park-your-domain.com/getip",
+    ),
 ]
 
 IPV6_SERVICES = [
@@ -70,7 +75,9 @@ IPV6_SERVICES = [
 ]
 
 
-def _get_ip(client: httpx.Client, ip_services: List[IPService], version: str) -> IPAddress:
+def _get_ip(
+    client: httpx.Client, ip_services: List[IPService], version: str
+) -> IPAddress:
     for ip_service in ip_services:
         printer.info(
             f"Checking current IPv{version} address with service: {ip_service.name} ({ip_service.url})"
