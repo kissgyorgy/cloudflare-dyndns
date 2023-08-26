@@ -33,8 +33,8 @@ class IPCache(BaseModel):
 
 
 class Cache(BaseModel):
-    ipv4 = IPCache()
-    ipv6 = IPCache()
+    ipv4: IPCache = IPCache()
+    ipv6: IPCache = IPCache()
 
 
 class CacheManager:
@@ -66,7 +66,7 @@ class CacheManager:
         printer.info(f"Loading cache from: {self._path}")
         try:
             cache_json = self._path.read_text()
-            cache = Cache.parse_raw(cache_json)
+            cache = Cache.model_validate_json(cache_json)
         except FileNotFoundError:
             printer.info(f"Cache file not found.")
             return Cache()
@@ -82,7 +82,7 @@ class CacheManager:
         return cache
 
     def save(self, cache: Cache):
-        cache_json = cache.json()
+        cache_json = cache.model_dump_json()
         if self._debug:
             printer.info(f"Saving cache: {cache_json}")
         printer.info(f"Saving cache to: {self._path}")
