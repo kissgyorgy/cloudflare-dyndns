@@ -32,7 +32,11 @@ release-docker: build-docker
 release-python: build-package
     poetry publish
 
-release-all: release-docker release-python
+github:
+    git tag {{ version }}
+    git push origin --tags
+
+release-all: release-docker release-python github
 
 requirements-txt:
     poetry export -o requirements.txt
