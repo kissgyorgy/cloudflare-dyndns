@@ -1,6 +1,6 @@
 import ssl
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Tuple, Union
 
 import truststore
 from pydantic import BaseModel
@@ -36,6 +36,9 @@ class Cache(BaseModel):
     ipv4: IPCache = IPCache()
     ipv6: IPCache = IPCache()
 
+    def is_empty(self):
+        return self == self.__class__()
+
 
 class CacheManager:
     def __init__(
@@ -51,16 +54,17 @@ class CacheManager:
         if not self._path.parent.exists():
             self._path.parent.mkdir(parents=True)
 
-    def load(self) -> Cache:
+    def load(self) -> Tuple[Cache, Cache]:
+        new_cache = Cache()
+
         if self._force:
-            return Cache()
+            return Cache(), new_cache
 
         try:
-            return self._load()
+            return self._load(), new_cache
         except InvalidCache:
             self.delete()
-
-        return Cache()
+            return Cache(), new_cache
 
     def _load(self):
         printer.info(f"Loading cache from: {self._path}")
