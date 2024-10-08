@@ -5,8 +5,8 @@ docker-image := "kissgyorgy/cloudflare-dyndns"
 docker-image-latest := docker-image + ":latest"
 docker-image-version := docker-image + ":" + version
 
-install:
-    poetry install
+help:
+    @just --list
 
 clean:
     rm -r build/ dist/ {{ binary-name }} {{ sha256-name }}
