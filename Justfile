@@ -20,14 +20,14 @@ build-binary: requirements-txt
     sha256sum {{ binary-name }} > {{ sha256-name }}
 
 build-docker:
-    podman build -t docker.io/{{ docker-image-version }} .
-    podman tag docker.io/{{ docker-image-version }} docker.io/{{ docker-image-latest }}
+    docker build -t {{ docker-image-version }} .
+    docker tag {{ docker-image-version }} {{ docker-image-latest }}
 
 build-all: build-package build-binary build-docker
 
 release-docker: build-docker
-    podman push docker.io/{{ docker-image-version }}
-    podman push docker.io/{{ docker-image-latest }}
+    docker push {{ docker-image-version }}
+    docker push {{ docker-image-latest }}
 
 release-python: build-package
     poetry publish
