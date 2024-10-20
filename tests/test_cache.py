@@ -45,8 +45,8 @@ def test_invalid_cache(tmp_path, capsys):
 
 
 def test_compare_caches(cache):
-    cache1 = cache.copy(deep=True)
-    cache2 = cache.copy(deep=True)
+    cache1 = cache.model_copy(deep=True)
+    cache2 = cache.model_copy(deep=True)
     assert (cache1 == cache2) is True
 
     cache2.ipv4.address = ipaddress.IPv4Address("127.0.0.2")
