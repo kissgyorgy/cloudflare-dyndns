@@ -1,5 +1,7 @@
 import ipaddress
+
 import pytest
+
 from cloudflare_dyndns import ip_services as ips
 
 
@@ -35,7 +37,10 @@ sni=off
 warp=off
 gateway=off
 """
-    assert ips.parse_cloudflare_trace_ip(trace_service_response) == "b322:31e3:f950:bad3:3589:8d9c:0812:c9c7"
+    assert (
+        ips.parse_cloudflare_trace_ip(trace_service_response)
+        == "b322:31e3:f950:bad3:3589:8d9c:0812:c9c7"
+    )
 
 
 @pytest.mark.parametrize("service", ips.IPV4_SERVICES)

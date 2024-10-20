@@ -67,3 +67,9 @@ _modify-requirements-txt:
     )
 
     print(new_requirements, end="")
+
+test:
+    pytest
+
+check:
+    pre-commit run --all-files --hook-stage manual
