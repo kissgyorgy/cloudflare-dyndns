@@ -19,9 +19,9 @@ httpx = "^0.24.0"
 cloudflare-dyndns = 'cloudflare_dyndns.cli:main'
 
 [tool.poetry.group.dev.dependencies]
-pyoxidizer = "^0.24.0"
-pytest = "^6.2.3"
-pylint-starlark = "^1.1"
+pyoxidizer = "*"
+pytest = "*"
+pylint-starlark = "*"
 
 [tool.pytest.ini_options]
 markers = ["ipv6: Run IPv6 related tests with the --ipv6 custom pytest option"]
