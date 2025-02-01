@@ -1,4 +1,4 @@
-{ pkgs, lib, config, inputs, ... }:
+{ pkgs, ... }:
 {
   env = {
     UV_PYTHON_DOWNLOADS = "never";
@@ -6,11 +6,12 @@
   };
 
   # https://devenv.sh/packages/
-  packages = with pkgs; [ just podman ];
+  packages = with pkgs; [ just ];
 
   # https://devenv.sh/languages/
   languages.python = {
     enable = true;
+    venv.enable = true;
     uv = {
       enable = true;
       sync.enable = true;
@@ -21,11 +22,17 @@
   enterTest = "python -m pytest";
 
   # https://devenv.sh/pre-commit-hooks/
-  pre-commit.default_stages = [ "pre-push" "manual" ];
+  pre-commit.default_stages = [
+    "pre-push"
+    "manual"
+  ];
   pre-commit.hooks = {
     ruff = {
       enable = true;
-      args = [ "--select" "I" ];
+      args = [
+        "--select"
+        "I"
+      ];
       excludes = [ "migrations/" ];
     };
     ruff-format.enable = true;
