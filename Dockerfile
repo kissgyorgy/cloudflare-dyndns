@@ -6,13 +6,12 @@ RUN chown cfdns /app
 
 ENTRYPOINT ["cloudflare-dyndns"]
 
-ENV POETRY_VIRTUALENVS_CREATE=false
 ENV PATH=$PATH:/app/.local/bin
 
-RUN pip install --no-cache-dir poetry
+RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml poetry.lock /app/
+COPY pyproject.toml uv.lock /app/
 COPY README.md /app/
 COPY cloudflare_dyndns /app/cloudflare_dyndns
-RUN poetry install --only main
+RUN uv sync
 USER cfdns

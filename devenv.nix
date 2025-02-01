@@ -1,15 +1,19 @@
 { pkgs, lib, config, inputs, ... }:
 {
+  env = {
+    UV_PYTHON_DOWNLOADS = "never";
+    CURRENT_VERSION = "v" + (builtins.fromTOML (builtins.readFile ./pyproject.toml)).project.version;
+  };
+
   # https://devenv.sh/packages/
   packages = with pkgs; [ just podman ];
 
   # https://devenv.sh/languages/
   languages.python = {
     enable = true;
-    poetry = {
+    uv = {
       enable = true;
-      install.enable = true;
-      activate.enable = true;
+      sync.enable = true;
     };
   };
 

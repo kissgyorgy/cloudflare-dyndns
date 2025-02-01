@@ -1,31 +1,28 @@
-[tool.poetry]
+[project]
+authors = [{ name = "Kiss György", email = "gyorgy@duck.com" }]
 name = "cloudflare-dyndns"
 version = "5.0"
 description = "CloudFlare Dynamic DNS client"
-authors = ["Kiss György <gyorgy@duck.com>"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/kissgyorgy/cloudflare-dyndns"
+requires-python = ">=3.11"
 
+dependencies = [
+    "click>=8.1.8",
+    "httpx>=0.28.1",
+    "pydantic>=2.10.6",
+    "truststore>=0.10.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-click = "*"
-pydantic = "^2"
-truststore = "*"
-httpx = "*"
+[dependency-groups]
+dev = ["pytest>=8.3.4"]
 
-[tool.poetry.scripts]
+[project.scripts]
 cloudflare-dyndns = 'cloudflare_dyndns.cli:main'
-
-[tool.poetry.group.dev.dependencies]
-pyoxidizer = "*"
-pytest = "*"
-pylint-starlark = "*"
 
 [tool.pytest.ini_options]
 markers = ["ipv6: Run IPv6 related tests with the --ipv6 custom pytest option"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

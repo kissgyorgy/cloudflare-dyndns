@@ -1,4 +1,4 @@
-version := "v" + `poetry version -s`
+version := x"${CURRENT_VERSION}"
 binary-name := "cloudflare-dyndns-linux-x86-" + version
 sha256-name := binary-name + ".sha256"
 docker-image := "kissgyorgy/cloudflare-dyndns"
@@ -12,12 +12,12 @@ clean:
     rm -r build/ dist/ {{ binary-name }} {{ sha256-name }}
 
 build-package:
-    poetry build
 
 build-binary: requirements-txt
     pyoxidizer build
     mv ./build/x86_64-unknown-linux-gnu/debug/install/cloudflare-dyndns {{ binary-name }}
     sha256sum {{ binary-name }} > {{ sha256-name }}
+    uv build
 
 build-docker:
     docker build -t {{ docker-image-version }} .
@@ -30,7 +30,7 @@ release-docker: build-docker
     docker push {{ docker-image-latest }}
 
 release-python: build-package
-    poetry publish
+    uv publish
 
 release-github:
     git tag {{ version }}
@@ -39,7 +39,7 @@ release-github:
 release-all: release-docker release-python release-github
 
 requirements-txt:
-    poetry export -o requirements.txt
+    uv export -o requirements.txt
     just _modify-requirements-txt > requirements.new
     mv requirements.new requirements.txt
 
