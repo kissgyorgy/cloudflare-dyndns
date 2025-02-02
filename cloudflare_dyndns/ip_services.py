@@ -51,11 +51,7 @@ class IPService:
 
 
 IPV4_SERVICES = [
-    IPService(
-        "CloudFlare IPv4 trace",
-        "https://1.1.1.1/cdn-cgi/trace",
-        parse_cloudflare_trace_ip,
-    ),
+    IPService("ipify API", "https://api.ipify.org"),
     IPService(
         "AWS check ip",
         "https://checkip.amazonaws.com/",
@@ -69,6 +65,7 @@ IPV4_SERVICES = [
 
 IPV6_SERVICES = [
     # These are always return IPv6 addresses first, when the machine has IPv6
+    IPService("ipify API", "https://api6.ipify.org"),
     IPService("ip.tyk.nu", "https://ip.tyk.nu/"),
     IPService("wgetip.com", "https://wgetip.com/"),
     IPService("major.io icanhazip", "https://ipv6.icanhazip.com/"),
