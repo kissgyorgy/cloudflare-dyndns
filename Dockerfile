@@ -6,7 +6,7 @@ RUN chown cfdns /app
 
 ENTRYPOINT ["cloudflare-dyndns"]
 
-ENV PATH=$PATH:/app/.local/bin
+ENV PATH=$PATH:/app/.venv/bin
 
 RUN pip install --no-cache-dir uv
 
