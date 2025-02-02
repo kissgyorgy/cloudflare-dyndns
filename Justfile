@@ -12,18 +12,13 @@ clean:
     rm -r build/ dist/ {{ binary-name }} {{ sha256-name }}
 
 build-package:
-
-build-binary: requirements-txt
-    pyoxidizer build
-    mv ./build/x86_64-unknown-linux-gnu/debug/install/cloudflare-dyndns {{ binary-name }}
-    sha256sum {{ binary-name }} > {{ sha256-name }}
     uv build
 
 build-docker:
     docker build -t {{ docker-image-version }} .
     docker tag {{ docker-image-version }} {{ docker-image-latest }}
 
-build-all: build-package build-binary build-docker
+build-all: build-package build-docker
 
 release-docker: build-docker
     docker push {{ docker-image-version }}
@@ -37,36 +32,6 @@ release-github:
     git push origin --tags
 
 release-all: release-docker release-python release-github
-
-requirements-txt:
-    uv export -o requirements.txt
-    just _modify-requirements-txt > requirements.new
-    mv requirements.new requirements.txt
-
-_modify-requirements-txt:
-    #!/usr/bin/env python3
-    from pathlib import Path
-    import re
-
-    requirements_txt = Path("requirements.txt").read_text()
-
-    # Remove pyyaml dependency completely
-    new_requirements = re.sub(
-        r"pyyaml(.*\\\n)*.*[^\\]\n",
-        "",
-        requirements_txt,
-        flags=re.MULTILINE
-    )
-
-    # Add --no-binary pydantic option to the next line of pydantic
-    new_requirements = re.sub(
-        r"(pydantic.*\\)\n",
-        r"\1\n    --no-binary pydantic \\\n",
-        new_requirements,
-        flags=re.MULTILINE
-    )
-
-    print(new_requirements, end="")
 
 test:
     pytest

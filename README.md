@@ -17,8 +17,6 @@ You can simply install it with pip [from PyPI](https://pypi.org/project/cloudfla
 $ pip install cloudflare-dyndns
 ```
 
-Or you can [download a standalone binary from the releases page.](https://github.com/kissgyorgy/cloudflare-dyndns/releases/)
-
 Or you can use [the Docker image](https://hub.docker.com/r/kissgyorgy/cloudflare-dyndns):
 
 ```bash
