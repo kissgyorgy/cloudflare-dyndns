@@ -131,9 +131,5 @@ Options:
 
 ## Development
 
-You can install dependencies with poetry (preferable in a virtualenv).  
-After [installing poetry](https://poetry.eustace.io/docs/#installation), simply run:
-
-```bash
-$ poetry install
-```
+The development is done with devenv (https://devenv.sh), you don't need anything else, just install devenv
+and run `devenv shell` and you are good to go. Run `uv sync` to install dependencies or `pytest` to run the tests.
