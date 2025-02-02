@@ -22,7 +22,7 @@
       import tomllib
       with open("pyproject.toml", "rb") as f:
           pyproject = tomllib.load(f)
-          print(pyproject["project"]["version"], end="")
+          print("v" + pyproject["project"]["version"], end="")
     '';
     package = config.languages.python.package;
   };
