@@ -28,7 +28,10 @@ release-docker: build-docker
     docker push {{ docker-image-latest }}
 
 release-python: build-package
-    uv publish dist/cloudlfare_dyndns-*{{ version }}*.tar.gz dist/cloudlfare_dyndns-*{{ version }}*.whl
+    #!/usr/bin/env bash
+    export UV_PUBLISH_TOKEN=$(op.exe read op://Secrets/pypi-token/credential)
+    FILES=$(find dist -regextype posix-extended -regex 'dist/cloudflare_dyndns-5\.1(\.tar\.gz|.*\.whl)')
+    uv publish $FILES
 
 release-github: print-version
     git tag {{ version }}
