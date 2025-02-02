@@ -92,6 +92,10 @@ Options:
 
 # Changelog
 
+- **v5.1** Removed CloudFlare IP tracer service
+
+  It doesn't work anymore, replaced with ipify.org service.
+
 - **v5.0** Mac OS Support
 
   Able to read CA bundle from trust stores on Mac OS too, no need for file-based CA store.
