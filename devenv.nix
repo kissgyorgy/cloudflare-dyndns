@@ -1,8 +1,7 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 {
   env = {
     UV_PYTHON_DOWNLOADS = "never";
-    CURRENT_VERSION = "v" + (builtins.fromTOML (builtins.readFile ./pyproject.toml)).project.version;
   };
 
   # https://devenv.sh/packages/
@@ -16,6 +15,16 @@
       enable = true;
       sync.enable = true;
     };
+  };
+
+  scripts.project-version = {
+    exec = ''
+      import tomllib
+      with open("pyproject.toml", "rb") as f:
+          pyproject = tomllib.load(f)
+          print(pyproject["project"]["version"], end="")
+    '';
+    package = config.languages.python.package;
   };
 
   # https://devenv.sh/tests/

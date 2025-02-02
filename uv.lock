@@ -47,7 +47,7 @@ wheels = [
 
 [[package]]
 name = "cloudflare-dyndns"
-version = "5.0"
+version = "5.1"
 source = { editable = "." }
 dependencies = [
     { name = "click" },

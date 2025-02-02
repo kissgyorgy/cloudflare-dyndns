@@ -1,4 +1,4 @@
-version := x"${CURRENT_VERSION}"
+version := `project-version`
 binary-name := "cloudflare-dyndns-linux-x86-" + version
 sha256-name := binary-name + ".sha256"
 docker-image := "kissgyorgy/cloudflare-dyndns"
@@ -11,10 +11,13 @@ help:
 clean:
     rm -r build/ dist/ {{ binary-name }} {{ sha256-name }}
 
-build-package:
+print-version:
+    @echo Current version: v{{ version }}
+
+build-package: print-version
     uv build
 
-build-docker:
+build-docker: print-version
     docker build -t {{ docker-image-version }} .
     docker tag {{ docker-image-version }} {{ docker-image-latest }}
 
@@ -25,9 +28,9 @@ release-docker: build-docker
     docker push {{ docker-image-latest }}
 
 release-python: build-package
-    uv publish
+    uv publish dist/cloudlfare_dyndns-*{{ version }}*.tar.gz dist/cloudlfare_dyndns-*{{ version }}*.whl
 
-release-github:
+release-github: print-version
     git tag {{ version }}
     git push origin --tags
 
