@@ -33,15 +33,44 @@ def parse_domains_args(domains: List[str], domains_env: Optional[str]) -> List[s
     return domains
 
 
+# workaround for: https://github.com/pallets/click/issues/257
+def parse_api_token_args(
+    api_token: Optional[str], api_token_file: Optional[Path]
+) -> str:
+    if api_token is not None and api_token_file is not None:
+        raise click.BadArgumentUsage(
+            "Ambiguous api token, use either --api-token or --api-token-file, not both!"
+        )
+
+    if api_token is not None:
+        return api_token
+    elif api_token_file is not None:
+        return api_token_file.read_text()
+    else:
+        raise click.BadArgumentUsage(
+            "You have to specify an api token; use --api-token or --api-token-file."
+        )
+
+
 @click.command()
 @click.argument("domains", nargs=-1)
 @click.option(
     "--api-token",
-    required=True,
     envvar="CLOUDFLARE_API_TOKEN",
     help=(
         "CloudFlare API Token (You can create one at My Profile page / API Tokens tab). "
-        "Can be set with CLOUDFLARE_API_TOKEN environment variable."
+        "Can be set with CLOUDFLARE_API_TOKEN environment variable. "
+        "Mutually exclusive with `--api-token-file`."
+    ),
+)
+@click.option(
+    "--api-token-file",
+    type=click.Path(dir_okay=False, writable=False, readable=True, path_type=Path),
+    envvar="CLOUDFLARE_API_TOKEN_FILE",
+    help=(
+        "File containing CloudFlare API Token (You can create one at My Profile page / API Tokens tab). "
+        "Can be set with CLOUDFLARE_API_TOKEN_FILE environment variable. "
+        "Mutually exclusive with `--api-token`."
     ),
 )
 @click.option(
@@ -88,7 +117,8 @@ def parse_domains_args(domains: List[str], domains_env: Optional[str]) -> List[s
 def main(
     ctx: click.Context,
     domains: List[str],
-    api_token: str,
+    api_token: Optional[str],
+    api_token_file: Optional[Path],
     proxied: bool,
     ipv4: bool,
     ipv6: bool,
@@ -117,6 +147,7 @@ def main(
 
     domains_env = os.environ.get("CLOUDFLARE_DOMAINS")
     domains = parse_domains_args(domains, domains_env)
+    api_token = parse_api_token_args(api_token, api_token_file)
 
     cache_manager = CacheManager(cache_file, force)
     old_cache, new_cache = cache_manager.load()
