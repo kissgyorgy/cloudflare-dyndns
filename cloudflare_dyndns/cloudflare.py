@@ -27,18 +27,18 @@ class CloudFlareWrapper:
         return result
 
     @functools.lru_cache
+    def get_all_zone_ids(self) -> list[tuple[str, str]]:
+        all_zones = self._request("GET", "/zones")
+        return [(zone["name"], zone["id"]) for zone in all_zones]
+
+    @functools.lru_cache
     def get_zone_id(self, domain: str) -> str:
-        without_subdomains = ".".join(domain.rsplit(".")[-2:])
-        zone_list = self._request("GET", "/zones", params={"name": without_subdomains})
+        for zone_name, zone_id in self.get_all_zone_ids():
+            if domain.endswith(zone_name):
+                return zone_id
 
-        # not sure if multiple zones can exist for the same domain
-        try:
-            zone = zone_list[0]
-        except IndexError:
-            printer.error(f'Cannot find domain "{domain}" at CloudFlare')
-            raise CloudFlareError
-
-        return zone["id"]
+        printer.error(f'Cannot find domain "{domain}" at CloudFlare')
+        raise CloudFlareError
 
     @functools.lru_cache
     def _get_records(self, domain: str) -> dict:
