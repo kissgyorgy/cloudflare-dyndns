@@ -1,5 +1,5 @@
 [project]
-authors = [{ name = "Kiss György", email = "gyorgy@duck.com" }]
+authors = [{ name = "György Kiss", email = "gyorgy@duck.com" }]
 name = "cloudflare-dyndns"
 version = "5.1"
 description = "CloudFlare Dynamic DNS client"
