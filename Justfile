@@ -9,7 +9,9 @@ help:
     @just --list
 
 clean:
-    rm -r build/ dist/ {{ binary-name }} {{ sha256-name }}
+    rm -rf build/ dist/ {{ binary-name }} {{ sha256-name }} \
+        .devenv/* .devenv.* .direnv/* .pytest_cache/* .ruff_cache .pre-commit-config.yaml
+    find -name "*.pyc" -delete
 
 print-version:
     @echo Current version: v{{ version }}
