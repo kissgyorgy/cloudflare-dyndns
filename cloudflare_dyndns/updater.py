@@ -47,7 +47,7 @@ class CFUpdater:
         record_type: RecordType,
         old_cache: IPCache,
         new_cache: IPCache,
-    ):
+    ) -> int:
         click.echo()
         try:
             current_ip = get_ip_func()
@@ -126,49 +126,12 @@ class CFUpdater:
         success = True
 
         for domain in domains:
-            update_record_failed = False
-
-            cache_record = old_cache.updated_domains.get(domain)
-
-            if cache_record is not None:
-                zone_id = cache_record.zone_id
-                record_id = cache_record.record_id
-                try:
-                    self._cf.update_record(
-                        domain, current_ip, zone_id, record_id, self._proxied
-                    )
-                except CloudFlareError:
-                    printer.error(f"Couldn't update record: {domain}")
-                    update_record_failed = True
-
-            if cache_record is None or update_record_failed:
-                try:
-                    zone_id = self._cf.get_zone_id(domain)
-                except CloudFlareError:
-                    # TODO: try to create zone?
-                    success = False
-                    continue
-
-                try:
-                    record_id = self._cf.get_record_id(
-                        domain, get_record_type(current_ip)
-                    )
-                except CloudFlareError:
-                    try:
-                        record_id = self._cf.create_record(
-                            domain, current_ip, self._proxied
-                        )
-                    except CloudFlareError:
-                        success = False
-                        continue
-                else:
-                    try:
-                        self._cf.update_record(
-                            domain, current_ip, zone_id, record_id, self._proxied
-                        )
-                    except CloudFlareError:
-                        success = False
-                        continue
+            try:
+                zone_id, record_id = self._update_domain(domain, current_ip, old_cache)
+            except CloudFlareError:
+                success = False
+                printer.error(f'Failed to update domain records for domain "{domain}"')
+                continue
 
             zone_record = ZoneRecord(
                 zone_id=zone_id, record_id=record_id, proxied=self._proxied
@@ -176,3 +139,33 @@ class CFUpdater:
             new_cache.updated_domains[domain] = zone_record
 
         return success
+
+    def _update_domain(
+        self, domain: str, current_ip: IPAddress, old_cache: IPCache
+    ) -> tuple[str, str]:
+        cache_record = old_cache.updated_domains.get(domain)
+        update_record_failed = False
+
+        if cache_record is not None:
+            zone_id = cache_record.zone_id
+            record_id = cache_record.record_id
+            try:
+                self._cf.update_record(
+                    domain, current_ip, zone_id, record_id, self._proxied
+                )
+            except CloudFlareError:
+                update_record_failed = True
+
+        if cache_record is None or update_record_failed:
+            zone_id = self._cf.get_zone_id(domain)
+
+            try:
+                record_id = self._cf.get_record_id(domain, get_record_type(current_ip))
+            except CloudFlareError:
+                record_id = self._cf.create_record(domain, current_ip, self._proxied)
+            else:
+                self._cf.update_record(
+                    domain, current_ip, zone_id, record_id, self._proxied
+                )
+
+        return zone_id, record_id
