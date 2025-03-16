@@ -31,9 +31,9 @@ release-docker: test build-docker
 
 release-python: test build-package
     #!/usr/bin/env bash
+    rm -rf dist/
     export UV_PUBLISH_TOKEN=$(op.exe read op://Secrets/pypi-token/credential)
-    FILES=$(find dist -regextype posix-extended -regex 'dist/cloudflare_dyndns-5\.1(\.tar\.gz|.*\.whl)')
-    uv publish $FILES
+    uv publish
 
 release-github: test print-version
     git tag {{ version }}
