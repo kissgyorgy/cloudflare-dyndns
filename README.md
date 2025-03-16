@@ -11,14 +11,27 @@ similar to the classic [ddclient perl script](https://sourceforge.net/p/ddclient
 
 ## Install
 
-You can simply install it with pip [from PyPI](https://pypi.org/project/cloudflare-dyndns/):
+The simplest way to run this script is using the `uv` Python package manager:
+
+```bash
+$ uvx cloudflare-dyndns
+```
+
+You can install it with pip [from PyPI](https://pypi.org/project/cloudflare-dyndns/):
 
 ```bash
 $ pip install cloudflare-dyndns
 ```
 
-Or you can use [the Docker image](https://hub.docker.com/r/kissgyorgy/cloudflare-dyndns):
+There is a Nix package available as well:
+```bash
+nix-shell -p cloudflare-dyndns
+```
+Or you can even configure NixOS to use it as a service by setting `services.cloudflare-dyndns` options in `configuration.nix`.  
+See `man 5 configuration.nix` on NixOS for details.
 
+
+You can use [the Docker image](https://hub.docker.com/r/kissgyorgy/cloudflare-dyndns):
 ```bash
 $ docker run --rm -it kissgyorgy/cloudflare-dyndns --help
 ```
