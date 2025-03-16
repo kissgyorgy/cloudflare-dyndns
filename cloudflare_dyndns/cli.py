@@ -9,7 +9,7 @@ from cloudflare_dyndns.updater import CFUpdater
 
 from . import printer
 from .cache import CacheManager
-from .cloudflare import CloudFlareWrapper
+from .cloudflare import CloudFlareError, CloudFlareTokenInvalid, CloudFlareWrapper
 
 cache_path = os.environ.get("XDG_CACHE_HOME", "~/.cache")
 XDG_CACHE_HOME = Path(cache_path).expanduser()
@@ -52,6 +52,24 @@ def parse_api_token_args(
         )
 
 
+def verify_api_token(cf: CloudFlareWrapper, ctx: click.Context):
+    try:
+        cf.verify_token()
+    except CloudFlareTokenInvalid:
+        printer.error("CloudFlare API Token is invalid!")
+        ctx.exit(3)
+    except CloudFlareError as e:
+        printer.error(f"Failed to verify CloudFlare API Token for other reason: {e}")
+        ctx.exit(3)
+    else:
+        printer.success(
+            "CloudFlare API Token is valid for managing the following zones:"
+        )
+        for zone_name, _ in cf.get_all_zone_ids():
+            printer.info(f"  - {zone_name}")
+        ctx.exit(0)
+
+
 @click.command()
 @click.argument("domains", nargs=-1)
 @click.option(
@@ -72,6 +90,11 @@ def parse_api_token_args(
         "Can be set with CLOUDFLARE_API_TOKEN_FILE environment variable. "
         "Mutually exclusive with `--api-token`."
     ),
+)
+@click.option(
+    "--verify-token",
+    is_flag=True,
+    help="Check if the API token is valid through the CloudFlare API.",
 )
 @click.option(
     "--proxied",
@@ -119,6 +142,7 @@ def main(
     domains: List[str],
     api_token: Optional[str],
     api_token_file: Optional[Path],
+    verify_token: bool,
     proxied: bool,
     ipv4: bool,
     ipv6: bool,
@@ -141,6 +165,12 @@ def main(
     The script supports both IPv4 and IPv6 addresses. The default is to set only
     A records for IPv4, which you can change with the relevant options.
     """
+    api_token = parse_api_token_args(api_token, api_token_file)
+    cf = CloudFlareWrapper(api_token)
+
+    if verify_token:
+        verify_api_token(cf, ctx)
+
     if not ipv4 and not ipv6:
         raise click.UsageError(
             "You have to specify at least one IP mode; use -4 or -6.", ctx=ctx
@@ -148,12 +178,10 @@ def main(
 
     domains_env = os.environ.get("CLOUDFLARE_DOMAINS")
     domains = parse_domains_args(domains, domains_env)
-    api_token = parse_api_token_args(api_token, api_token_file)
 
     cache_manager = CacheManager(cache_file, force)
     old_cache, new_cache = cache_manager.load()
 
-    cf = CloudFlareWrapper(api_token)
     updater = CFUpdater(
         domains, cf, old_cache, new_cache, force, delete_missing, proxied, debug
     )

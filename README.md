@@ -72,6 +72,8 @@ Options:
                          one at My Profile page / API Tokens tab). Can be set
                          with CLOUDFLARE_API_TOKEN_FILE environment variable.
                          Mutually exclusive with `--api-token`.
+  --verify-token         Check if the API token is valid through the
+                         CloudFlare API.
   --proxied              Whether the records are receiving the performance and
                          security benefits of Cloudflare.
   -4 / -no-4             Turn on/off IPv4 detection and set A records.

@@ -12,8 +12,12 @@ class CloudFlareError(Exception):
     """We can't communicate with CloudFlare API as expected."""
 
 
+class CloudFlareTokenInvalid(Exception):
+    """The API token verification failed"""
+
+
 class CloudFlareWrapper:
-    API_URL = "https://api.cloudflare.com/client/v4/"
+    API_URL = "https://api.cloudflare.com/client/v4"
 
     def __init__(self, api_token: str):
         headers = {"Authorization": f"Bearer {api_token}"}
@@ -37,6 +41,14 @@ class CloudFlareWrapper:
             raise CloudFlareError
 
         return json_res["result"]
+
+    def verify_token(self):
+        res = self._client.request("GET", "/user/tokens/verify")
+        if res.is_client_error:
+            raise CloudFlareTokenInvalid("Invalid API token")
+        elif res.is_error:
+            error_message = res.json().get("errors", res.text)
+            raise CloudFlareError(error_message)
 
     @functools.lru_cache
     def get_all_zone_ids(self) -> list[tuple[str, str]]:
