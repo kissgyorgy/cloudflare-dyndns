@@ -23,8 +23,20 @@ class CloudFlareWrapper:
 
     def _request(self, method: str, url: str, **kwargs) -> dict:
         res = self._client.request(method, url, **kwargs)
-        result = res.json()["result"]
-        return result
+        json_res = res.json()
+        if res.is_client_error:
+            error_message = json_res.get("errors", res.text)
+            printer.error(
+                f"CloudFlare API Client error: {error_message}\n"
+                "Maybe your API token is invalid?"
+            )
+            raise CloudFlareError
+
+        if errors := json_res.get("errors"):
+            printer.error(f"CloudFlare API error: {errors}")
+            raise CloudFlareError
+
+        return json_res["result"]
 
     @functools.lru_cache
     def get_all_zone_ids(self) -> list[tuple[str, str]]:
