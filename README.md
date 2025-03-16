@@ -41,15 +41,20 @@ behavior, but if you have a different use case,
 
 ## Command line interface
 
+<!-- ```$
+echo "$ cloudflare-dyndns --help"
+cloudflare-dyndns --help
+``` -->
+
 ```
 $ cloudflare-dyndns --help
-Usage: python -m cloudflare_dyndns.cli [OPTIONS] [DOMAINS]...
+Usage: cloudflare-dyndns [OPTIONS] [DOMAINS]...
 
   A command line script to update CloudFlare DNS A and/or AAAA records based
   on the current IP address(es) of the machine running the script.
 
-  For the main domain (the "@" record), simply put "example.com" Subdomains
-  can also be specified, eg. "*.example.com" or "sub.example.com"
+  For the main domain (the "@" record), simply put "example.com".
+  Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
 
   You can set the list of domains to update in the CLOUDFLARE_DOMAINS
   environment variable, in which the domains has to be separated by
@@ -76,8 +81,8 @@ Options:
   --delete-missing       Delete DNS record when no IP address found. Delete A
                          record when IPv4 is missing, AAAA record when IPv6 is
                          missing.
-  --cache-file FILE      Cache file  [default: /home/jeremy/.cache/cloudflare-
-                         dyndns/ip.cache]
+  --cache-file FILE      Cache file  [default: (~/.cache/cloudflare-
+                         dyndns/ip.cache)]
   --force                Delete cache and update every domain
   --debug                More verbose messages and Exception tracebacks
   --help                 Show this message and exit.

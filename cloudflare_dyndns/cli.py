@@ -107,7 +107,7 @@ def parse_api_token_args(
     help="Cache file",
     type=click.Path(dir_okay=False, writable=True, readable=True, path_type=Path),
     default=XDG_CACHE_HOME / "cloudflare-dyndns" / "ip.cache",
-    show_default=True,
+    show_default="~/.cache/cloudflare-dyndns/ip.cache",
 )
 @click.option("--force", is_flag=True, help="Delete cache and update every domain")
 @click.option(
@@ -130,7 +130,8 @@ def main(
     """A command line script to update CloudFlare DNS A and/or AAAA records
     based on the current IP address(es) of the machine running the script.
 
-    For the main domain (the "@" record), simply put "example.com" \b
+    \b
+    For the main domain (the "@" record), simply put "example.com".
     Subdomains can also be specified, eg. "*.example.com" or "sub.example.com"
 
     You can set the list of domains to update in the CLOUDFLARE_DOMAINS

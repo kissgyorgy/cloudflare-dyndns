@@ -5,7 +5,10 @@
   };
 
   # https://devenv.sh/packages/
-  packages = with pkgs; [ just ];
+  packages = with pkgs; [
+    just
+    mdsh
+  ];
 
   # https://devenv.sh/languages/
   languages.python = {
@@ -51,6 +54,12 @@
       excludes = [ ".*.md$" ];
     };
     end-of-file-fixer.enable = true;
+    cli-help-output = {
+      enable = true;
+      name = "Update CLI help output in README.md";
+      entry = "bash -c '2>/dev/null mdsh -i'";
+      files = "README\.md";
+    };
   };
   # See full reference at https://devenv.sh/reference/options/
 }
