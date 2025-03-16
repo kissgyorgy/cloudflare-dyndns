@@ -96,46 +96,15 @@ Options:
 - `2`: IP cannot be determined (IP service error)
 - `3`: CloudFlare related error (cannot call API, cannot get records, etc...)
 
-# Changelog
 
-- **v5.1** Removed CloudFlare IP tracer service
+## Changelog
 
-  It doesn't work anymore, replaced with ipify.org service.
+See the [Releases page](https://github.com/kissgyorgy/cloudflare-dyndns/releases) for a full Changelog.
 
-- **v5.0** Mac OS Support
-
-  Able to read CA bundle from trust stores on Mac OS too, no need for file-based CA store.
-
-- **v4.0** IPv6 support
-
-  Now you can specify `-6` command line option to update AAAA records too.  
-  You can delete records for missing IP addresses with the `--delete-missing`
-  option. See [issue #6](https://github.com/kissgyorgy/cloudflare-dyndns/issues/6) for details.  
-  There is a new `--proxied` flag for setting Cloudflare DNS services.
-
-- **v3.0** breaks backward compatibility using the global API Key
-
-  You can only use API Tokens now, which you can create under `My Profile / API Tokens`: https://dash.cloudflare.com/profile/api-tokens.
-  The problem with the previously used API Key is that it has global access to
-  your Cloudflare account. With the new API Tokens, you can make the script
-  permissions as narrow as needed.
-
-  **Upgrading from 2.0 and using API Tokens is highly recommended!**
-
-  The `--domains` option is now gone, because it made no sense (it only existed
-  for reading from the envvar), but you can use the `CLOUDFLARE_DOMAINS` envvar
-  the same as before.
-
-- **v2.0** breaks backward compatibility for a PyPI release.
-
-  The script you need to run is now called `cloudflare-dyndns` and the cache file
-  also changed. You can delete the old cache manually, or you can leave it, it
-  won't cause a problem.
-
-  The Docker file entry point is changed, so if you pull the new image, everything
-  will work as before.
 
 ## Development
 
-The development is done with devenv (https://devenv.sh), you don't need anything else, just install devenv
-and run `devenv shell` and you are good to go. Run `uv sync` to install dependencies or `pytest` to run the tests.
+The development is done with devenv (https://devenv.sh), you don't need anything
+else, just install devenv and run `devenv shell` and you are good to go.
+
+Run `uv sync` to install dependencies or `pytest` to run the tests.
