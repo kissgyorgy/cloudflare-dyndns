@@ -1,0 +1,11 @@
+meta {
+  name: Get DNS records
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{apiUrl}}/zones/{{zoneId}}/dns_records
+  body: none
+  auth: inherit
+}
