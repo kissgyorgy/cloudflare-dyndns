@@ -1,7 +1,7 @@
 [project]
 authors = [{ name = "György Kiss", email = "gyorgy@duck.com" }]
 name = "cloudflare-dyndns"
-version = "5.1"
+version = "5.2"
 description = "CloudFlare Dynamic DNS client"
 license = "MIT"
 readme = "README.md"
