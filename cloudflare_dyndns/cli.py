@@ -5,11 +5,11 @@ from typing import List, Optional
 
 import click
 
-from cloudflare_dyndns.updater import CFUpdater
-
 from . import printer
 from .cache import CacheManager
 from .cloudflare import CloudFlareError, CloudFlareTokenInvalid, CloudFlareWrapper
+from .types import ExitCode
+from .updater import CFUpdater
 
 cache_path = os.environ.get("XDG_CACHE_HOME", "~/.cache")
 XDG_CACHE_HOME = Path(cache_path).expanduser()
@@ -57,17 +57,17 @@ def verify_api_token(cf: CloudFlareWrapper, ctx: click.Context):
         cf.verify_token()
     except CloudFlareTokenInvalid:
         printer.error("CloudFlare API Token is invalid!")
-        ctx.exit(3)
+        ctx.exit(ExitCode.CLOUDFLARE_ERROR)
     except CloudFlareError as e:
         printer.error(f"Failed to verify CloudFlare API Token for other reason: {e}")
-        ctx.exit(3)
+        ctx.exit(ExitCode.CLOUDFLARE_ERROR)
     else:
         printer.success(
             "CloudFlare API Token is valid for managing the following zones:"
         )
         for zone_name, _ in cf.get_all_zone_ids():
             printer.info(f"  - {zone_name}")
-        ctx.exit(0)
+        ctx.exit(ExitCode.OK)
 
 
 @click.command()
@@ -200,7 +200,7 @@ def main(
         cache_manager.save(new_cache)
     click.echo()
 
-    exit_codes.discard(0)
+    exit_codes.discard(ExitCode.OK)
     if not exit_codes:
         printer.success("Done.")
         return

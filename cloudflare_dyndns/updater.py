@@ -6,7 +6,7 @@ from . import printer
 from .cache import Cache, IPCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
 from .ip_services import IPServiceError, get_ipv4, get_ipv6
-from .types import IPAddress, RecordType, get_record_type
+from .types import ExitCode, IPAddress, RecordType, get_record_type
 
 
 class CFUpdater:
@@ -54,40 +54,40 @@ class CFUpdater:
         except IPServiceError as e:
             printer.error(str(e))
             if not self._delete_missing:
-                return 3
+                return ExitCode.IP_SERVICE_ERROR
 
             for domain in self._domains:
                 self._cf.delete_record(domain, record_type)
             # when the --delete-missing flag is specified, this is the expected behavior
             # so there should be no error reported
-            return 0
+            return ExitCode.OK
 
         if current_ip != old_cache.address:
             new_cache.address = current_ip
 
         if not (domains_to_update := self._get_domains(current_ip, old_cache)):
-            return 0
+            return ExitCode.OK
 
         try:
-            success = self._update_domains(
+            update_success = self._update_domains(
                 domains_to_update, current_ip, old_cache, new_cache
             )
         except CloudFlareError as e:
             printer.error(str(e))
             if self._debug:
                 raise
-            return 2
+            return ExitCode.CLOUDFLARE_ERROR
 
         except Exception as e:
             printer.error(f"Unknown error: {e}")
             if self._debug:
                 raise
-            return 1
+            return ExitCode.UNKNOWN_ERROR
 
-        if not success:
-            return 2
+        if not update_success:
+            return ExitCode.CLOUDFLARE_ERROR
 
-        return 0
+        return ExitCode.OK
 
     def _get_domains(self, current_ip: IPAddress, old_cache: IPCache) -> Iterable[str]:
         if self._force:
