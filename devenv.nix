@@ -38,10 +38,7 @@
   pre-commit.hooks = {
     ruff = {
       enable = true;
-      args = [
-        "--select"
-        "I"
-      ];
+      args = [ "--select" "I" ];
       excludes = [ "migrations/" ];
     };
     ruff-format.enable = true;
