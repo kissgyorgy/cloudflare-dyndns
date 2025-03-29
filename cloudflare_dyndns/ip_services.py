@@ -16,28 +16,6 @@ class IPServiceError(Exception):
     """
 
 
-def parse_cloudflare_trace_ip(res: str) -> Optional[str]:
-    """Parses the IP address line from the cloudflare trace service response.
-    Example response:
-        fl=114f30
-        h=1.1.1.1
-        ip=188.6.90.5
-        ts=1567700692.298
-        visit_scheme=https
-        uag=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36
-        colo=VIE
-        http=http/2
-        loc=HU
-        tls=TLSv1.3
-        sni=off
-        warp=off
-    """
-    for line in res.splitlines():
-        if line.startswith("ip="):
-            ip = line[len("ip=") :]
-            return ip
-
-
 def strip_whitespace(res: str) -> str:
     """Strip whitespaces from the IP service response."""
     return res.strip()
