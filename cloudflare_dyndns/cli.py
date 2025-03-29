@@ -136,6 +136,7 @@ def verify_api_token(cf: CloudFlareWrapper, ctx: click.Context):
 @click.option(
     "--debug", is_flag=True, help="More verbose messages and Exception tracebacks"
 )
+@click.version_option()
 @click.pass_context
 def main(
     ctx: click.Context,
