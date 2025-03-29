@@ -14,7 +14,7 @@ clean:
     find -name "*.pyc" -delete
 
 print-version:
-    @echo Current version: v{{ version }}
+    @echo Current version: {{ version }}
 
 build-package: print-version
     uv build
@@ -29,9 +29,10 @@ release-docker: test build-docker
     docker push {{ docker-image-version }}
     docker push {{ docker-image-latest }}
 
-release-python: test build-package
+release-python: test
     #!/usr/bin/env bash
-    rm -rf dist/
+    rm -rf dist/*
+    uv build
     export UV_PUBLISH_TOKEN=$(op.exe read op://Secrets/pypi-token/credential)
     uv publish
 
