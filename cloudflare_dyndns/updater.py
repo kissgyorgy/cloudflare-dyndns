@@ -90,9 +90,7 @@ class CFUpdater:
         return ExitCode.OK
 
     def _get_domains(self, current_ip: IPAddress, old_cache: IPCache) -> Iterable[str]:
-        if self._force:
-            printer.warning("Forced update, ignoring cache")
-        elif current_ip != old_cache.address:
+        if current_ip != old_cache.address:
             return self._domains
 
         updated_domains = {
@@ -107,7 +105,7 @@ class CFUpdater:
                 f"Domains with this IP address in cache: {updated_domains_list}"
             )
         else:
-            printer.info("There are no domains with this IP address in cache.")
+            printer.info("There are no domains with this IP in cache.")
 
         missing_domains = set(self._domains) - updated_domains
         if not missing_domains:
@@ -130,7 +128,7 @@ class CFUpdater:
                 zone_id, record_id = self._update_domain(domain, current_ip, old_cache)
             except CloudFlareError:
                 success = False
-                printer.error(f'Failed to update domain records for domain "{domain}"')
+                printer.error(f'Failed to update records for domain "{domain}"')
                 continue
 
             zone_record = ZoneRecord(

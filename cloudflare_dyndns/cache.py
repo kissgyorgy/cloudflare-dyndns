@@ -58,6 +58,7 @@ class CacheManager:
         new_cache = Cache()
 
         if self._force:
+            printer.warning("Forced update, ignoring cache")
             return Cache(), new_cache
 
         try:
@@ -86,7 +87,7 @@ class CacheManager:
         return cache
 
     def save(self, cache: Cache):
-        cache_json = cache.model_dump_json()
+        cache_json = cache.model_dump_json(indent=2)
         if self._debug:
             printer.info(f"Saving cache: {cache_json}")
         printer.info(f"Saving cache to: {self._path}")
