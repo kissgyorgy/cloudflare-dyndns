@@ -196,18 +196,19 @@ def main(
         exit_codes.add(exit_code)
 
     click.echo()
-    if not new_cache.is_empty() and new_cache != old_cache:
-        cache_manager.save(new_cache)
-    click.echo()
 
     exit_codes.discard(ExitCode.OK)
-    if not exit_codes:
-        printer.success("Done.")
-        return
+    if exit_codes:
+        final_exit_code = min(exit_codes)
+        printer.warning("There were errors during update.")
+        cache_manager.delete()
+        return final_exit_code
 
-    final_exit_code = min(exit_codes)
-    printer.warning("There were some errors during update.")
-    ctx.exit(final_exit_code)
+    if not new_cache.is_empty() and new_cache != old_cache:
+        cache_manager.save(new_cache)
+
+    printer.success("Done.")
+    return ExitCode.OK
 
 
 if __name__ == "__main__":
