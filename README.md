@@ -100,6 +100,7 @@ Options:
                          dyndns/ip.cache)]
   --force                Delete cache and update every domain
   --debug                More verbose messages and Exception tracebacks
+  --version              Show the version and exit.
   --help                 Show this message and exit.
 ```
 

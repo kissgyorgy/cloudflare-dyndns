@@ -47,3 +47,6 @@ test:
 
 check:
     pre-commit run --all-files --hook-stage manual
+
+update-readme:
+    mdsh
