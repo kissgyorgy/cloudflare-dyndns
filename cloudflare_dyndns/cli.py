@@ -45,7 +45,7 @@ def parse_api_token_args(
     if api_token is not None:
         return api_token
     elif api_token_file is not None:
-        return api_token_file.read_text()
+        return api_token_file.read_text().rstrip()
     else:
         raise click.BadArgumentUsage(
             "You have to specify an api token; use --api-token or --api-token-file."
