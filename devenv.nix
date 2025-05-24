@@ -34,11 +34,11 @@
   enterTest = "python -m pytest";
 
   # https://devenv.sh/pre-commit-hooks/
-  pre-commit.default_stages = [
+  git-hooks.default_stages = [
     "pre-push"
     "manual"
   ];
-  pre-commit.hooks = {
+  git-hooks.hooks = {
     ruff = {
       enable = true;
       args = [ "--select" "I" ];
