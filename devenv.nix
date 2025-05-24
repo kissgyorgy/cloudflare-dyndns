@@ -57,8 +57,8 @@
     cli-help-output = {
       enable = true;
       name = "Update CLI help output in README.md";
-      entry = "bash -c '2>/dev/null mdsh -i'";
-      files = "README\.md";
+      pass_filenames = false;
+      entry = "bash -c 'mdsh -i README.md 2>/dev/null'";
     };
   };
   # See full reference at https://devenv.sh/reference/options/
