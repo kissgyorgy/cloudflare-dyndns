@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 from pathlib import Path
 from typing import List, Optional
 
@@ -203,13 +204,13 @@ def main(
         final_exit_code = min(exit_codes)
         printer.warning("There were errors during update.")
         cache_manager.delete()
-        return final_exit_code
+        ctx.exit(final_exit_code)
 
     if not new_cache.is_empty() and new_cache != old_cache:
         cache_manager.save(new_cache)
 
     printer.success("Done.")
-    return ExitCode.OK
+    return ctx.exit(ExitCode.OK)
 
 
 if __name__ == "__main__":
