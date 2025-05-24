@@ -1,4 +1,4 @@
-version := `project-version`
+version := env("PROJECT_VERSION")
 binary-name := "cloudflare-dyndns-linux-x86-" + version
 sha256-name := binary-name + ".sha256"
 docker-image := "kissgyorgy/cloudflare-dyndns"

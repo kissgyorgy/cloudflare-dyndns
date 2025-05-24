@@ -1,7 +1,8 @@
-{ pkgs, config, ... }:
+{ pkgs, lib, ... }:
 {
   env = {
     UV_PYTHON_DOWNLOADS = "never";
+    PROJECT_VERSION = (import ./meta.nix lib).version;
   };
 
   # https://devenv.sh/packages/
@@ -18,16 +19,6 @@
       enable = true;
       sync.enable = true;
     };
-  };
-
-  scripts.project-version = {
-    exec = ''
-      import tomllib
-      with open("pyproject.toml", "rb") as f:
-          pyproject = tomllib.load(f)
-          print("v" + pyproject["project"]["version"], end="")
-    '';
-    package = config.languages.python.package;
   };
 
   # https://devenv.sh/tests/
