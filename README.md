@@ -11,19 +11,19 @@ similar to the classic [ddclient perl script](https://sourceforge.net/p/ddclient
 
 ## Install
 
-The simplest way to run this script is using the `uv` Python package manager:
+1\. The *simplest way* to run this script is using the **`uv`** Python **package manager**:
 
 ```bash
 $ uvx cloudflare-dyndns
 ```
 
-You can install it with pip [from PyPI](https://pypi.org/project/cloudflare-dyndns/):
+2\. You can install it with pip [from PyPI](https://pypi.org/project/cloudflare-dyndns/):
 
 ```bash
 $ pip install cloudflare-dyndns
 ```
 
-There is a Nix package available as well:
+3\. There is a **Nix package** available as well:
 ```bash
 nix-shell -p cloudflare-dyndns
 ```
@@ -31,13 +31,27 @@ Or you can even configure NixOS to use it as a service by setting `services.clou
 See `man 5 configuration.nix` on NixOS for details.
 
 
-You can use [the Docker image](https://hub.docker.com/r/kissgyorgy/cloudflare-dyndns):
+4\. You can use the [Docker image](https://hub.docker.com/r/kissgyorgy/cloudflare-dyndns):
 ```bash
 $ docker run --rm -it kissgyorgy/cloudflare-dyndns --help
 ```
 
 Please note that before you can use the `-6` IPv6 option in Docker, you need to [enable IPv6 support in the Docker daemon](https://docs.docker.com/config/daemon/ipv6/).
 Afterward, you can choose to use either IPv4 or IPv6 (or both) with any container, service, or network.
+
+
+5\. Import the **Nix flake**:
+
+```nix
+  ...
+  inputs = {
+    nixpkgs.url = ...;
+    cloudflare-dyndns.url "github:kissgyorgy/cloudflare-dyndns";
+  };
+  outputs = {pkgs, cloudflare-dyndns, ...}: {
+    ...
+  }
+```
 
 # Note
 
