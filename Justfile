@@ -25,18 +25,18 @@ build-docker: print-version
 
 build-all: build-package build-docker
 
-release-docker: test build-docker
+release-docker: check test build-docker
     docker push {{ docker-image-version }}
     docker push {{ docker-image-latest }}
 
-release-python: test
+release-python: check test
     #!/usr/bin/env bash
     rm -rf dist/*
     uv build
     export UV_PUBLISH_TOKEN=$(op.exe read op://Secrets/pypi-token/credential)
     uv publish
 
-release-github: test print-version
+release-github: check test print-version
     git tag {{ version }}
     git push origin --tags
 
