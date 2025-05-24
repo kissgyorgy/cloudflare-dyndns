@@ -1,6 +1,4 @@
 version := env("PROJECT_VERSION")
-binary-name := "cloudflare-dyndns-linux-x86-" + version
-sha256-name := binary-name + ".sha256"
 docker-image := "kissgyorgy/cloudflare-dyndns"
 docker-image-latest := docker-image + ":latest"
 docker-image-version := docker-image + ":" + version
@@ -9,7 +7,7 @@ help:
     @just --list
 
 clean:
-    rm -rf build/ dist/ {{ binary-name }} {{ sha256-name }} \
+    rm -rf build/ dist/ \
         .devenv/* .devenv.* .direnv/* .pytest_cache/* .ruff_cache .pre-commit-config.yaml
     find -name "*.pyc" -delete
 
