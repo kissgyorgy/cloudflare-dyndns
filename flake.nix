@@ -23,18 +23,7 @@
           pkgs = import nixpkgs { inherit system; };
         in
         {
-          default = with pkgs.python312Packages;
-            buildPythonApplication {
-              pname = meta.name;
-              version = meta.version;
-              pyproject = true;
-              src = ./.;
-              dependencies = map (name: pkgs.python312Packages.${name}) meta.dependencies;
-              build-system = [
-                hatchling
-              ];
-              meta.mainProgram = meta.mainProgram;
-            };
+          default = import ./default.nix { inherit pkgs; };
         }
       );
     };
