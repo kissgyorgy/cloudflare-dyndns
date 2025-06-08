@@ -7,7 +7,7 @@ help:
     @just --list
 
 clean:
-    rm -rf build/ dist/ \
+    rm -rf build/ dist/ cloudflare-dyndns \
         .devenv/* .devenv.* .direnv/* .pytest_cache/* .ruff_cache .pre-commit-config.yaml
     find -name "*.pyc" -delete
 
@@ -17,11 +17,18 @@ print-version:
 build-package: print-version
     uv build
 
+build-go: print-version
+    go build -o cloudflare-dyndns .
+
+build-go-docker: print-version
+    docker build -f Dockerfile-go -t {{ docker-image-version }}-go .
+    docker tag {{ docker-image-version }}-go {{ docker-image-latest }}-go
+
 build-docker: print-version
     docker build -t {{ docker-image-version }} .
     docker tag {{ docker-image-version }} {{ docker-image-latest }}
 
-build-all: build-package build-docker
+build-all: build-package build-go build-docker build-go-docker
 
 release-docker: check test build-docker
     docker push {{ docker-image-version }}
