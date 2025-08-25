@@ -185,7 +185,7 @@ def main(
     old_cache, new_cache = cache_manager.load()
 
     updater = CFUpdater(
-        domains, cf, old_cache, new_cache, force, delete_missing, proxied, debug
+        domains, cf, old_cache, new_cache, force, delete_missing, proxied, debug, cache_manager
     )
 
     exit_codes = set()
