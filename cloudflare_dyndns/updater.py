@@ -3,7 +3,7 @@ from typing import Callable, Iterable, List
 import click
 
 from . import printer
-from .cache import Cache, IPCache, ZoneRecord
+from .cache import Cache, CacheManager, IPCache, ZoneRecord
 from .cloudflare import CloudFlareError, CloudFlareWrapper
 from .ip_services import IPServiceError, get_ipv4, get_ipv6
 from .types import ExitCode, IPAddress, RecordType, get_record_type
@@ -20,6 +20,7 @@ class CFUpdater:
         delete_missing: bool,
         proxied: bool,
         debug: bool,
+        cache_manager: CacheManager,
     ):
         self._domains = domains
         self._cf = cf
@@ -29,6 +30,7 @@ class CFUpdater:
         self._delete_missing = delete_missing
         self._proxied = proxied
         self._debug = debug
+        self._cache_manager = cache_manager
         self._exit_codes = set()
 
     def update_ipv4(self):
@@ -58,6 +60,8 @@ class CFUpdater:
 
             for domain in self._domains:
                 self._cf.delete_record(domain, record_type)
+            # Delete cache when all IP services fail to prevent stale cache issues
+            self._cache_manager.delete()
             # when the --delete-missing flag is specified, this is the expected behavior
             # so there should be no error reported
             return ExitCode.OK
